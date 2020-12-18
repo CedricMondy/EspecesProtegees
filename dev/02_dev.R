@@ -21,6 +21,7 @@ usethis::use_package( "thinkr" )
 ## Create a module infrastructure in R/
 golem::add_module( name = "select_data" ) # Name of the module
 golem::add_module( name = "select_period" ) # Name of the module
+golem::add_module( name = "select" )
 
 ## Add helper functions ----
 ## Creates ftc_* and utils_*
