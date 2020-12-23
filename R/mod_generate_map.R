@@ -20,8 +20,7 @@ mod_generate_map_ui <- function(id){
 #' @noRd 
 #' @importFrom shiny moduleServer observe req reactive
 #' @importFrom leafgl renderLeafgl
-mod_generate_map_server <- function(id, donnees, taxa
-                                    ){
+mod_generate_map_server <- function(id, donnees, taxa){
   moduleServer(
     id,
     function(input, output, session){
@@ -29,8 +28,7 @@ mod_generate_map_server <- function(id, donnees, taxa
         renderLeafgl()
       
       observe({
-        req(donnees, taxa
-            )
+        req(donnees, taxa)
         
         if (is.null(taxa())) {
           data_map <- donnees()

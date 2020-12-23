@@ -21,17 +21,24 @@ mod_generate_treemap_ui <- function(id){
 #' 
 #' @importFrom shiny moduleServer observe reactive req reactiveVal observeEvent
 #' @importFrom plotly renderPlotly event_data
-mod_generate_treemap_server <- function(id, donnees){
+#' @importFrom dplyr filter
+mod_generate_treemap_server <- function(id, donnees, limites){
   moduleServer(
     id,
     function(input, output, session){
       click <- reactiveVal()
       
       observe({
-        req(donnees)
+        req(donnees(), limites())
         
         output$treemap <- renderPlotly({
           donnees() %>% 
+            filter(
+              longitude >= limites()$west,
+              longitude <= limites()$east,
+              latitude >= limites()$south,
+              latitude <= limites()$north
+            ) %>% 
             prepare_treemap_data() %>% 
             generate_treemap(source = "treemap")
         })
@@ -61,6 +68,12 @@ mod_generate_treemap_server <- function(id, donnees){
         if (is.null(new_click()))
           click(NULL)
       })
+      
+      observeEvent(
+        limites(),
+        {
+        click(NULL)
+          })
       
       reactive(click())
     }
