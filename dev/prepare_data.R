@@ -49,7 +49,7 @@ AllSpecies <- AllSpeciesRaw %>%
                year()) %>% 
     filter(
         across(c(longitude, latitude), function(x) {!is.na(x)}),
-        annee >= 2015
+        annee >= 2000
     ) %>% 
     mutate(
         niveau_precision_localisation = factor(
