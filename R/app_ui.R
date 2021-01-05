@@ -3,14 +3,117 @@
 #' @param request Internal parameter for `{shiny}`. 
 #'     DO NOT REMOVE.
 #' @import shiny
+#' @importFrom shiny.semantic semanticPage sidebar_layout sidebar_panel main_panel tabset segment grid grid_template
+#' @importFrom shinybusy add_busy_spinner
 #' @noRd
 app_ui <- function(request) {
+  my_layout <- grid_template(
+    default = list(
+      areas = rbind(
+        c("map", "treemap")
+      ),
+      cols_width = c("50%", "50%")
+    )
+  )
+  
+  ChoixDepartements <- c("Paris",
+                    "Hauts-de-Seine",
+                    "Seine-Saint-Denis",
+                    "Val-de-Marne",
+                    "Yvelines",
+                    "Val-d'Oise",
+                    "Seine-et-Marne",
+                    "Essonne"
+  )
+  
+  ChoixPrecisions <- list(
+    "Point"    = "XY point",
+    "Polygone" = "XY centroïde ligne/polygone",
+    "Commune"  = "XY centroïde commune"
+  )
+  
   tagList(
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # List the first level UI elements here 
-    fluidPage(
-      h1("EspecesProtegees")
+    semanticPage(
+      tagList(tags$head(
+        tags$style(
+          'div.speciesPopup {
+               height: 10px;
+               max-height: 200px;
+               max-width: auto !important;
+               opacity: .5;
+           }
+           
+           .leaflet-popup-content {
+                margin-top: 10px;
+                margin-right: 2px;
+                padding-right: 8px;
+                margin-left: 10px;
+                min-width: 100px !important;
+                max-height: 200px;
+                overflow: auto;
+           }'
+        ) 
+      )),
+      title = "Espèces protégées d'Ile-de-France",
+      div(
+        class = "raised segment",
+        div(
+          a(class = "ui green ribbon label", 
+            "Espèces protégées d'Ile-de-France")
+        ),
+        sidebar_layout(
+          sidebar_panel(
+            EspecesProtegees:::mod_select_data_ui(id = "donnees"),
+            br(),
+            hr(),
+            EspecesProtegees:::mod_select_period_ui(id = "periode"),
+            br(),
+            EspecesProtegees:::mod_select_ui(id = "departements",
+                                             label = "Département(s)",
+                                             placeholder = "Tous les départements",
+                                             choices = ChoixDepartements),
+            br(),
+            EspecesProtegees:::mod_select_ui(id = "precisions",
+                                             label = "Niveau de précision géographique",
+                                             placeholder = "Tous les niveaux",
+                                             choices = ChoixPrecisions)
+          ),
+          main_panel(
+            add_busy_spinner(spin = "fading-circle"),
+            tabset(
+              tabs = list(
+                list(
+                  menu = "Visualisation",
+                content = shiny.semantic::grid(
+                  my_layout,
+                  map = EspecesProtegees:::mod_generate_map_ui(id = "carte"),
+                  treemap = EspecesProtegees:::mod_generate_treemap_ui(id = "treemap")
+                )
+                ),
+                list(
+                  menu = "Données affichées",
+                  content = tabset(
+                    tabs = list(
+                      list(
+                        menu = "Liste des espèces",
+                        content = EspecesProtegees:::mod_generate_taxalist_ui(id = "especes")
+                      ),
+                      list(
+                        menu = "Liste des observations",
+                        content = EspecesProtegees:::mod_generate_observationlist_ui(id = "observations")
+                      )
+                    )
+                  )
+                  
+                )
+              )
+            )
+          )
+        )
+      )
     )
   )
 }
