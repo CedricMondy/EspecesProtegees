@@ -11,13 +11,8 @@
 mod_generate_taxalist_ui <- function(id){
   ns <- NS(id)
   tagList(
-        list(
-          list(
-            title = "Liste des espèces",
-            content = DTOutput(ns("ListeEspece"))
-          )
-        )
-  )
+    DTOutput(ns("ListeEspece"))
+    )
 }
     
 #' generate_taxalist Server Function
