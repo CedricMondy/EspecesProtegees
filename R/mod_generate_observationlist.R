@@ -6,11 +6,12 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList 
+#' @importFrom shiny NS tagList uiOutput
 #' @importFrom DT DTOutput
 mod_generate_observationlist_ui <- function(id){
   ns <- NS(id)
   tagList(
+    uiOutput(outputId = ns("GetData")),
     DTOutput(ns("ListeObservations"))
   )
 }
@@ -18,17 +19,19 @@ mod_generate_observationlist_ui <- function(id){
 #' generate_observationlist Server Function
 #'
 #' @noRd 
-#' @importFrom shiny moduleServer reactive req
+#' @importFrom shiny moduleServer reactive req renderUI downloadButton downloadHandler
 #' @importFrom dplyr filter select
 #' @importFrom DT datatable renderDT
 mod_generate_observationlist_server <- function(id, donnees, limites, taxa){
   moduleServer(
     id,
     function(input, output, session){
+      ns <- session$ns
+
       liste_observations <- reactive({
         req(donnees(), limites(), taxa)
         
-        liste <- donnees() %>% 
+        donnees() %>% 
           filter(
             longitude >= limites()$west,
             longitude <= limites()$east,
@@ -59,21 +62,46 @@ mod_generate_observationlist_server <- function(id, donnees, limites, taxa){
             `Jeu de données` = libelle_jeu_donnees,
             `ID SINP occtax` = id_sinp_occtax
           )
-        
-        
-        liste %>% 
+      })
+      
+      output$ListeObservations <- renderDT({
+        liste_observations() %>% 
           datatable(
             filter = 'top',
             rownames = FALSE,
             options = list(
-              dom = 'itlp',
+              dom = 'tlp',
               scrollX = TRUE, 
               autoWidth = TRUE
             )
           )
+        }
+      )
+      
+      output$GetData <- renderUI({
+        downloadButton(
+          outputId = ns("download"),
+          label = paste0(
+            "Télécharger ",
+            nrow(liste_observations()),
+            " observations"
+          ), 
+          class = "ui blue button"
+        )
       })
       
-      output$ListeObservations <- renderDT(liste_observations())
+      output$download <- downloadHandler(
+        filename = "observations_affichees.csv",
+        content = function(file) {
+            write.csv2(
+              x = liste_observations(),
+              file = file, 
+              row.names = FALSE,
+              fileEncoding = "UTF-8"
+              )
+        }
+      )
+      
     }
   )
 }

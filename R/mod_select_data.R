@@ -6,7 +6,7 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList selectInput
+#' @importFrom shiny NS tagList selectInput div uiOutput
 mod_select_data_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -22,13 +22,15 @@ mod_select_data_ui <- function(id){
         "Crustacés et mollusques" = "molluscs"
       ),
       multiple = FALSE
-    )
+    ),
+    div(),
+    uiOutput(outputId = ns("GetData"))
   )
 }
     
 #' choose_data Server Function
 #'
-#' @importFrom shiny reactive req moduleServer
+#' @importFrom shiny reactive req moduleServer renderUI downloadButton downloadHandler
 #' @importFrom leaflet colorFactor
 #' @importFrom paletteer paletteer_d
 #' @importFrom dplyr mutate
@@ -37,8 +39,31 @@ mod_select_data_server <- function(id){
   moduleServer(
     id,
     function(input, output, session) {
+      ns <- session$ns
+      
       reactive({
         req(input$group)
+        
+        CustomLabel <- switch(
+            input$group,
+            birds = "oiseaux",
+            fish = "poissons",
+            insects = "insectes",
+            mammals = "mammifères",
+            molluscs = "crustacés et mollusques",
+            reptiles = "reptiles et amphibiens"
+          )
+        
+        output$GetData <- renderUI({
+          downloadButton(
+            outputId = ns("download"),
+            label = paste0(
+              "Télécharger toutes les données ",
+              CustomLabel
+            ), 
+            class = "ui blue button"
+            )
+        })
         
         raw_data <- switch(
           input$group,
@@ -49,6 +74,18 @@ mod_select_data_server <- function(id){
           molluscs = EspecesProtegees:::molluscs,
           reptiles = EspecesProtegees:::reptiles
           )
+        
+        output$download <- downloadHandler(
+          filename = paste0(CustomLabel, ".csv"),
+          content = function(file) {
+            write.csv2(
+              x = raw_data,
+              file = file, 
+              row.names = FALSE,
+              fileEncoding = "UTF-8"
+            )
+          }
+        )
         
         palOrdre <- colorFactor(
           palette = paletteer_d("RColorBrewer::Dark2") %>% 
