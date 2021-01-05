@@ -25,6 +25,7 @@ golem::add_module( name = "select" )
 golem::add_module( name = "generate_map" )
 golem::add_module( name = "generate_treemap" )
 golem::add_module( name = "generate_taxalist" )
+golem::add_module( name = "generate_observationlist")
 
 ## Add helper functions ----
 ## Creates ftc_* and utils_*
