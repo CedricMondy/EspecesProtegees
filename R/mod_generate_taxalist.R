@@ -18,7 +18,7 @@ mod_generate_taxalist_ui <- function(id){
 #' generate_taxalist Server Function
 #'
 #' @noRd 
-#' @importFrom shiny moduleServer reactive
+#' @importFrom shiny moduleServer reactive req
 #' @importFrom dplyr filter count rename mutate arrange group_by summarise
 #' @importFrom DT datatable renderDT
 mod_generate_taxalist_server <- function(id, donnees, limites, taxa){
@@ -75,8 +75,11 @@ mod_generate_taxalist_server <- function(id, donnees, limites, taxa){
         liste %>% 
           datatable(
             filter = 'top',
+            rownames = FALSE,
             options = list(
-              dom = 'itlp'
+              dom = 'itlp',
+              scrollX = TRUE, 
+              autoWidth = TRUE
             )
           )
       })
