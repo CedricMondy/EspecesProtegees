@@ -9,7 +9,7 @@ pacman::p_load(here, purrr, vroom, janitor, dplyr, lubridate, forcats, glue, use
 # FUNCTIONS ---------------------------------------------------------------
 
 prepare_taxa_data <- function(df, condition) {
-    df %>% 
+    data <- df %>% 
         filter({{condition}}) %>% 
         arrange(ordre, famille, genre) %>% 
         mutate(espece = fct_inorder(espece)) %>% 
@@ -18,6 +18,16 @@ prepare_taxa_data <- function(df, condition) {
         slice(1) %>% 
         ungroup() %>% 
         select(libelle_jeu_donnees, observateur, determinateur, nom_scientifique_ref, nom_vernaculaire, regne, classe, ordre, famille, genre, espece, date_debut, latitude, longitude, niveau_precision_localisation, commune, departement, id_sinp_occtax, annee)
+    
+    noms_vernaculaires <- data %>% 
+        group_by(espece) %>% 
+        summarise(nom_vernaculaire = paste(na.omit(unique(nom_vernaculaire)),
+                                            collapse = ", "),
+                  .groups = "drop")
+    
+    data %>% 
+        select(-nom_vernaculaire) %>% 
+        left_join(noms_vernaculaires, by = "espece")
 }
 
 
@@ -64,7 +74,6 @@ AllSpecies <- AllSpeciesRaw %>%
     )
     )
 
-# DATA EXPORT -------------------------------------------------------------
 
 ## INSECTS
 insects <- AllSpecies %>%
@@ -90,6 +99,8 @@ reptiles <- AllSpecies %>%
 ## MOLLUSCS AND CRUSTACEANS
 molluscs <- AllSpecies %>% 
     prepare_taxa_data(classe %in% c("Bivalvia", "Gastropoda", "Malacostraca"))
+
+# DATA EXPORT -------------------------------------------------------------
 
 use_data(insects, birds, mammals, fish, reptiles, molluscs,
          internal = TRUE, overwrite = TRUE)
