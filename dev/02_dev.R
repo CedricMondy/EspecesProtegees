@@ -24,6 +24,7 @@ golem::add_module( name = "select_period" ) # Name of the module
 golem::add_module( name = "select" )
 golem::add_module( name = "generate_map" )
 golem::add_module( name = "generate_treemap" )
+golem::add_module( name = "generate_taxalist" )
 
 ## Add helper functions ----
 ## Creates ftc_* and utils_*
