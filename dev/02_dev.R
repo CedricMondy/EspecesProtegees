@@ -15,7 +15,25 @@
 
 ## Dependencies ----
 ## Add one line by package you want to add as dependency
+usethis::use_pipe()
 usethis::use_package( "rmarkdown" )
+usethis::use_package( "DT" )
+usethis::use_package( "config" )
+usethis::use_package( "dplyr" )
+usethis::use_package( "glue" )
+usethis::use_package( "golem" )
+usethis::use_package( "htmltools" )
+usethis::use_package( "leafgl" )
+usethis::use_package( "leaflet" )
+usethis::use_package( "leaflet.extras" )
+usethis::use_package( "lubridate" )
+usethis::use_package( "paletteer" )
+usethis::use_package( "plotly" )
+usethis::use_package( "sf" )
+usethis::use_package( "shiny" )
+usethis::use_package( "shiny.semantic" )
+usethis::use_package( "shinybusy" )
+usethis::use_package( "stringr" )
 
 ## Add modules ----
 ## Create a module infrastructure in R/

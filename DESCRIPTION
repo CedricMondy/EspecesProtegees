@@ -15,7 +15,18 @@ Imports:
     htmltools,
     magrittr,
     rmarkdown,
-    pkgload
+    pkgload,
+    dplyr,
+    leafgl,
+    leaflet,
+    leaflet.extras,
+    lubridate,
+    paletteer,
+    plotly,
+    sf,
+    shiny.semantic,
+    shinybusy,
+    stringr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
