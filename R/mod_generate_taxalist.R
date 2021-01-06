@@ -20,7 +20,7 @@ mod_generate_taxalist_ui <- function(id){
 #'
 #' @noRd 
 #' @importFrom shiny moduleServer reactive req renderUI downloadButton downloadHandler
-#' @importFrom dplyr filter count rename mutate arrange group_by summarise
+#' @importFrom dplyr filter count select mutate arrange group_by summarise
 #' @importFrom DT datatable renderDT
 mod_generate_taxalist_server <- function(id, donnees, limites, taxa){
   moduleServer(
@@ -47,7 +47,8 @@ mod_generate_taxalist_server <- function(id, donnees, limites, taxa){
               df
             }
           }) %>% 
-          count(ordre, famille, espece, nom_vernaculaire) %>% 
+          count(ordre, famille, espece, nom_vernaculaire, 
+                url_inpn, url_ofb) %>% 
           (function(df) {
             n_ordre <- group_by(df, ordre) %>% 
               summarise(n = sum(n)) %>% 
@@ -65,12 +66,24 @@ mod_generate_taxalist_server <- function(id, donnees, limites, taxa){
               ) %>% 
               arrange(ordre, famille, desc(n))
           }) %>% 
-          rename(
+          mutate(
+            inpn = paste0("<a href='", url_inpn, "' target='_blank'>INPN</a>"),
+            ofb = ifelse(
+              !is.na(url_ofb),
+              paste0(" | <a href='", url_ofb, "' target='_blank'>OFB</a>"),
+              ""
+            )
+          ) %>% 
+          mutate(
+            info = paste0(inpn, ofb)
+          ) %>% 
+          select(
             `Ordre`   = ordre,
             `Famille` = famille,
             `Espèce`  = espece,
             `Nom vernaculaire` = nom_vernaculaire,
-            `Nombre d'observations` = n
+            `Nombre d'observations` = n,
+            `Fiche espèce` = info
           )
       })
       
@@ -91,6 +104,7 @@ mod_generate_taxalist_server <- function(id, donnees, limites, taxa){
           datatable(
             filter = 'top',
             rownames = FALSE,
+            escape = FALSE,
             options = list(
               dom = 'tlp',
               scrollX = TRUE, 
