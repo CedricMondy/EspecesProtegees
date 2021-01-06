@@ -40,7 +40,7 @@ find_taxonomy <- function(cd_ref, taxref) {
         )
 }
 
-prepare_taxa_data <- function(df, condition, taxref) {
+prepare_taxa_data <- function(df, condition, taxref, fiches_ofb) {
     df %>% 
         filter({{condition}}) %>% 
         select(libelle_jeu_donnees, observateur, determinateur, cd_ref, date_debut, latitude, longitude, niveau_precision_localisation, commune, departement, id_sinp_occtax, annee) %>% 
@@ -48,8 +48,9 @@ prepare_taxa_data <- function(df, condition, taxref) {
         group_by(espece, latitude, longitude, annee) %>% 
         arrange(date_debut) %>% 
         slice(1) %>% 
-        ungroup() 
-        
+        ungroup() %>% 
+        left_join(fiches_ofb, by = "espece")
+    
 }
 
 
@@ -59,10 +60,14 @@ prepare_taxa_data <- function(df, condition, taxref) {
 exportFile <- "records-2021-01-06"
 
 AllSpeciesRaw <- here("dev/rawdata", exportFile, paste0(exportFile, ".csv")) %>% 
-        vroom()
+    vroom()
 
 ## TAXREF ----
 taxref <- here("dev/rawdata/TAXREF_v14_2020/TAXREFv14.txt") %>% 
+    vroom()
+
+## Fiches OFB ----
+fiches_ofb <- here("dev/fiches_ofb_especes_protegees.csv") %>% 
     vroom()
 
 # DATA PREPARATION --------------------------------------------------------
@@ -116,41 +121,54 @@ AllSpecies <- AllSpeciesRaw %>%
                     "centroïde ligne/polygone",
                     "centroïde commune",
                     "centroïde maille"
-                    )
                 )
-            )) %>%
+            )
+        )) %>%
     select(where(~ !(all(is.na(.)))))
+
+url_ofb <- fiches_ofb %>% 
+    left_join(select(taxref, LB_NOM, CD_REF), 
+              by = c("espece" = "LB_NOM")) %>% 
+    select(-espece) %>% 
+    bind_cols(find_taxonomy(cd_ref = .$CD_REF, taxref = taxref)) %>% 
+    select(espece, url_ofb = lien_fiche_ofb)
 
 ## INSECTS
 insects <- AllSpecies %>%
     prepare_taxa_data(condition = classe == "Hexapoda",
-                      taxref = taxref)
+                      taxref = taxref,
+                      fiches_ofb = url_ofb)
 
 ## BIRDS
 birds <- AllSpecies %>% 
     prepare_taxa_data(condition = (classe == "Aves" & annee >= 2018),
-                      taxref = taxref)
+                      taxref = taxref,
+                      fiches_ofb = url_ofb)
 
 ## MAMMALS
 mammals <- AllSpecies %>% 
     prepare_taxa_data(classe == "Mammalia",
-                      taxref = taxref) 
+                      taxref = taxref,
+                      fiches_ofb = url_ofb) 
 
 ## FISH
 fish <- AllSpecies %>% 
     prepare_taxa_data(classe %in% c("Actinopterygii", "Petromyzonti"),
-                      taxref = taxref)
+                      taxref = taxref,
+                      fiches_ofb = url_ofb)
 
 ## REPTILES AND AMPHIBIANS
 reptiles <- AllSpecies %>% 
     prepare_taxa_data(condition = (classe == "Amphibia" | 
                                        (is.na(classe) & ordre %in% c("Chelonii", "Squamata"))),
-                      taxref = taxref)
+                      taxref = taxref,
+                      fiches_ofb = url_ofb)
 
 ## MOLLUSCS AND CRUSTACEANS
 molluscs <- AllSpecies %>% 
     prepare_taxa_data(classe %in% c("Bivalvia", "Gastropoda", "Malacostraca"),
-                      taxref = taxref)
+                      taxref = taxref,
+                      fiches_ofb = url_ofb)
 
 # DATA EXPORT -------------------------------------------------------------
 
