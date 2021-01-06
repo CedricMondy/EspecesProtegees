@@ -123,6 +123,19 @@ AllSpecies <- AllSpeciesRaw %>%
                     "centroïde maille"
                 )
             )
+        ),
+        departement = factor(
+            departement,
+            levels = c(
+                "Paris",
+                "Seine-et-Marne",
+                "Yvelines",
+                "Essonne",
+                "Hauts-de-Seine",
+                "Seine-Saint-Denis",
+                "Val-de-Marne",
+                "Val-d'Oise"
+            )
         )) %>%
     select(where(~ !(all(is.na(.)))))
 

@@ -5,6 +5,8 @@
 #' @import shiny
 #' @importFrom shiny.semantic semanticPage sidebar_layout sidebar_panel main_panel tabset segment grid grid_template
 #' @importFrom shinybusy add_busy_spinner
+#' @importFrom purrr set_names
+#' @importFrom stringr str_remove_all str_to_sentence
 #' @noRd
 app_ui <- function(request) {
   my_layout <- grid_template(
@@ -16,21 +18,17 @@ app_ui <- function(request) {
     )
   )
   
-  ChoixDepartements <- c("Paris",
-                    "Hauts-de-Seine",
-                    "Seine-Saint-Denis",
-                    "Val-de-Marne",
-                    "Yvelines",
-                    "Val-d'Oise",
-                    "Seine-et-Marne",
-                    "Essonne"
-  )
+  ChoixDepartements <- levels(birds$departement)
   
-  ChoixPrecisions <- list(
-    "Point"    = "XY point",
-    "Polygone" = "XY centroïde ligne/polygone",
-    "Commune"  = "XY centroïde commune"
-  )
+  ChoixPrecisions <- levels(birds$niveau_precision_localisation) %>% 
+    as.list() %>% 
+    (function(x) {
+      set_names(x = x,
+                nm = x %>% 
+                  str_remove_all(pattern = "XY ") %>% 
+                  str_remove_all(pattern = "centroïde ") %>% 
+                  str_to_sentence())
+    })
   
   tagList(
     # Leave this function for adding external resources

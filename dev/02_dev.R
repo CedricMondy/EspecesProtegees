@@ -34,6 +34,7 @@ usethis::use_package( "shiny" )
 usethis::use_package( "shiny.semantic" )
 usethis::use_package( "shinybusy" )
 usethis::use_package( "stringr" )
+usethis::use_package( "purrr" )
 
 ## Add modules ----
 ## Create a module infrastructure in R/
