@@ -31,37 +31,11 @@ mod_generate_observationlist_server <- function(id, donnees, limites, taxa){
       liste_observations <- reactive({
         req(donnees(), limites(), taxa)
         
-        donnees() %>% 
-          filter(
-            longitude >= limites()$west,
-            longitude <= limites()$east,
-            latitude >= limites()$south,
-            latitude <= limites()$north
-          ) %>% 
-          (function(df) {
-            if (!is.null(taxa())) {
-              filter(df,
-                     (ordre %in% taxa()) |
-                       (espece %in% taxa()))
-            } else {
-              df
-            }
-          }) %>% 
-          select(
-            `Nom vernaculaire` = nom_vernaculaire,
-            `Ordre`   = ordre,
-            `Famille` = famille,
-            `Espèce`  = espece,
-            `Date` = date_debut,
-            `Commune` = commune,
-            `Département` = departement,
-            `Précision géographique` = niveau_precision_localisation,
-            `Longitude` = longitude,
-            `Latitude` = latitude,
-            `Observateur (structure)` = observateur,
-            `Jeu de données` = libelle_jeu_donnees,
-            `ID SINP occtax` = id_sinp_occtax
-          )
+        generate_observationlist(
+          data = donnees(),
+          limits = limites(),
+          taxa = taxa()
+        )
       })
       
       output$ListeObservations <- renderDT({
