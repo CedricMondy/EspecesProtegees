@@ -141,7 +141,7 @@ AllSpecies <- AllSpeciesRaw %>%
         ),
         departement = factor(
             departement,
-            levels = departement_idf
+            levels = departements_idf
         )) %>%
     select(where(~ !(all(is.na(.)))))
 
