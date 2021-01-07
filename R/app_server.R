@@ -7,13 +7,13 @@
 #' @noRd
 app_server <- function( input, output, session ) {
   # List the first level callModules here
-  donnees <- EspecesProtegees:::mod_select_data_server(id = "donnees")
-  annees <- EspecesProtegees:::mod_select_period_server(
+  donnees <- mod_select_data_server(id = "donnees")
+  annees <- mod_select_period_server(
     id = "periode",
     raw_data = donnees
   )
-  departements <- EspecesProtegees:::mod_select_server(id = "departements")
-  precisions <- EspecesProtegees:::mod_select_server(id = "precisions")
+  departements <- mod_select_server(id = "departements")
+  precisions <- mod_select_server(id = "precisions")
   
   DonneesFiltrees <- reactive({
     req(donnees)
@@ -25,26 +25,26 @@ app_server <- function( input, output, session ) {
         precisions   = precisions())
   })
 
-  taxa <- EspecesProtegees:::mod_generate_treemap_server(
+  taxa <- mod_generate_treemap_server(
     id = "treemap",
     donnees = DonneesFiltrees,
     limites = limites
   )
 
-  limites <- EspecesProtegees:::mod_generate_map_server(
+  limites <- mod_generate_map_server(
     id = "carte",
     donnees = DonneesFiltrees,
     taxa = taxa
   )
   
-  EspecesProtegees:::mod_generate_taxalist_server(
+  mod_generate_taxalist_server(
     id = "especes",
     donnees = DonneesFiltrees,
     limites = limites,
     taxa    = taxa
   )
   
-  EspecesProtegees:::mod_generate_observationlist_server(
+  mod_generate_observationlist_server(
     id = "observations",
     donnees = DonneesFiltrees,
     limites = limites,

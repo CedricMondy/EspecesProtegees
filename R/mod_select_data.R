@@ -67,12 +67,12 @@ mod_select_data_server <- function(id){
         
         raw_data <- switch(
           input$group,
-          birds    = EspecesProtegees:::birds,
-          fish     = EspecesProtegees:::fish,
-          insects  = EspecesProtegees:::insects,
-          mammals  = EspecesProtegees:::mammals,
-          molluscs = EspecesProtegees:::molluscs,
-          reptiles = EspecesProtegees:::reptiles
+          birds    = birds,
+          fish     = fish,
+          insects  = insects,
+          mammals  = mammals,
+          molluscs = molluscs,
+          reptiles = reptiles
           )
         
         output$download <- downloadHandler(

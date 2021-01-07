@@ -64,20 +64,24 @@ app_ui <- function(request) {
         ),
         sidebar_layout(
           sidebar_panel(
-            EspecesProtegees:::mod_select_data_ui(id = "donnees"),
+            mod_select_data_ui(id = "donnees"),
             br(),
             hr(),
-            EspecesProtegees:::mod_select_period_ui(id = "periode"),
+            mod_select_period_ui(id = "periode"),
             br(),
-            EspecesProtegees:::mod_select_ui(id = "departements",
-                                             label = "Département(s)",
-                                             placeholder = "Tous les départements",
-                                             choices = ChoixDepartements),
+            mod_select_ui(
+              id = "departements",
+              label = "Département(s)",
+              placeholder = "Tous les départements",
+              choices = ChoixDepartements
+              ),
             br(),
-            EspecesProtegees:::mod_select_ui(id = "precisions",
-                                             label = "Niveau de précision géographique",
-                                             placeholder = "Tous les niveaux",
-                                             choices = ChoixPrecisions)
+            mod_select_ui(
+              id = "precisions",
+              label = "Niveau de précision géographique",
+              placeholder = "Tous les niveaux",
+              choices = ChoixPrecisions
+              )
           ),
           main_panel(
             add_busy_spinner(spin = "fading-circle"),
@@ -87,8 +91,8 @@ app_ui <- function(request) {
                   menu = "Visualisation",
                 content = shiny.semantic::grid(
                   my_layout,
-                  map = EspecesProtegees:::mod_generate_map_ui(id = "carte"),
-                  treemap = EspecesProtegees:::mod_generate_treemap_ui(id = "treemap")
+                  map = mod_generate_map_ui(id = "carte"),
+                  treemap = mod_generate_treemap_ui(id = "treemap")
                 )
                 ),
                 list(
@@ -97,11 +101,13 @@ app_ui <- function(request) {
                     tabs = list(
                       list(
                         menu = "Liste des espèces",
-                        content = EspecesProtegees:::mod_generate_taxalist_ui(id = "especes")
+                        content = mod_generate_taxalist_ui(id = "especes")
                       ),
                       list(
                         menu = "Liste des observations",
-                        content = EspecesProtegees:::mod_generate_observationlist_ui(id = "observations")
+                        content = mod_generate_observationlist_ui(
+                          id = "observations"
+                          )
                       )
                     )
                   )

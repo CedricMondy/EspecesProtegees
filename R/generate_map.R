@@ -15,7 +15,7 @@ inpn_to_sf <- function(inpn) {
 #' @importFrom leafgl addGlPoints
 generate_map <- function() {
     
-    bbox <- EspecesProtegees:::mammals %>% 
+    bbox <- mammals %>% 
         inpn_to_sf() %>% 
         st_bbox()
     
