@@ -67,7 +67,8 @@ app_ui <- function(request) {
             mod_select_data_ui(id = "donnees"),
             br(),
             hr(),
-            mod_select_period_ui(id = "periode"),
+            mod_select_period_ui(id = "periode",
+                                 min_year = 2000),
             br(),
             mod_select_ui(
               id = "departements",
