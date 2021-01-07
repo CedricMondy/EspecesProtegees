@@ -45,6 +45,7 @@ prepare_taxa_data <- function(df, condition, taxref, fiches_ofb) {
         filter({{condition}}) %>% 
         select(libelle_jeu_donnees, observateur, determinateur, cd_ref, date_debut, latitude, longitude, niveau_precision_localisation, commune, departement, id_sinp_occtax, annee) %>% 
         bind_cols(find_taxonomy(.$cd_ref, taxref)) %>%
+        select(-cd_ref) %>% 
         group_by(espece, latitude, longitude, annee) %>% 
         arrange(date_debut) %>% 
         slice(1) %>% 
@@ -52,7 +53,6 @@ prepare_taxa_data <- function(df, condition, taxref, fiches_ofb) {
         left_join(fiches_ofb, by = "espece")
     
 }
-
 
 # DATA IMPORT--------------------------------------------------------------
 ## Observations -----
@@ -64,6 +64,10 @@ AllSpeciesRaw <- here("dev/rawdata", exportFile, paste0(exportFile, ".csv")) %>%
 
 ## TAXREF ----
 taxref <- here("dev/rawdata/TAXREF_v14_2020/TAXREFv14.txt") %>% 
+    vroom()
+
+## Statuts ----
+statuts <- here("dev/rawdata/BDC-Statuts-v13/BDC_STATUTS_13.csv") %>% 
     vroom()
 
 ## Fiches OFB ----
@@ -102,6 +106,17 @@ taxref <- taxref %>%
     )
 
 ## Préparation des données d'observation ----
+departements_idf <- c(
+    "Paris",
+    "Seine-et-Marne",
+    "Yvelines",
+    "Essonne",
+    "Hauts-de-Seine",
+    "Seine-Saint-Denis",
+    "Val-de-Marne",
+    "Val-d'Oise"
+)
+
 AllSpecies <- AllSpeciesRaw %>% 
     clean_names() %>% 
     mutate(annee = date_debut %>% 
@@ -126,18 +141,16 @@ AllSpecies <- AllSpeciesRaw %>%
         ),
         departement = factor(
             departement,
-            levels = c(
-                "Paris",
-                "Seine-et-Marne",
-                "Yvelines",
-                "Essonne",
-                "Hauts-de-Seine",
-                "Seine-Saint-Denis",
-                "Val-de-Marne",
-                "Val-d'Oise"
-            )
+            levels = departement_idf
         )) %>%
     select(where(~ !(all(is.na(.)))))
+
+status <- statuts %>% 
+    filter(
+        LB_ADM_TR %in% c("France", "France métropolitaine",
+                         "Ile-de-France",
+                         departements_idf)
+    )
 
 url_ofb <- fiches_ofb %>% 
     left_join(select(taxref, LB_NOM, CD_REF), 
@@ -185,5 +198,5 @@ molluscs <- AllSpecies %>%
 
 # DATA EXPORT -------------------------------------------------------------
 
-use_data(insects, birds, mammals, fish, reptiles, molluscs,
+use_data(insects, birds, mammals, fish, reptiles, molluscs, status,
          internal = TRUE, overwrite = TRUE)
