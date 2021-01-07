@@ -33,12 +33,7 @@ mod_generate_treemap_server <- function(id, donnees, limites){
         
         output$treemap <- renderPlotly({
           donnees() %>% 
-            filter(
-              longitude >= limites()$west,
-              longitude <= limites()$east,
-              latitude >= limites()$south,
-              latitude <= limites()$north
-            ) %>% 
+            filter_limits(limits = limites()) %>% 
             prepare_treemap_data() %>% 
             generate_treemap(source = "treemap")
         })

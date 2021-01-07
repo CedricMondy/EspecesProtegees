@@ -30,15 +30,7 @@ mod_generate_map_server <- function(id, donnees, taxa){
       observe({
         req(donnees, taxa)
         
-        if (is.null(taxa())) {
-          data_map <- donnees()
-        } else {
-          data_map <- donnees() %>%
-                     filter(
-                       (ordre %in% taxa()) |
-                         (espece %in% taxa())
-                       )
-        }
+        data_map <- filter_taxa(data = donnees(), taxa = taxa())
         
         update_map("map", data = data_map)
       })

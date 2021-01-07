@@ -2,21 +2,8 @@
 #' @importFrom stringr str_remove_all str_to_sentence
 generate_taxalist <- function(data, limits, taxa) {
     liste <- data %>% 
-        filter(
-            longitude >= limits$west,
-            longitude <= limits$east,
-            latitude >= limits$south,
-            latitude <= limits$north
-        ) %>% 
-        (function(df) {
-            if (!is.null(taxa)) {
-                filter(df,
-                       (ordre %in% taxa) |
-                           (espece %in% taxa))
-            } else {
-                df
-            }
-        }) %>% 
+        filter_limits(limits = limits) %>% 
+        filter_taxa(taxa = taxa) %>% 
         count(ordre, famille, espece, nom_vernaculaire, 
               url_inpn, url_ofb) %>% 
         (function(df) {
