@@ -21,6 +21,7 @@ mod_generate_taxalist_ui <- function(id){
 #' @noRd 
 #' @importFrom shiny moduleServer reactive req renderUI downloadButton downloadHandler
 #' @importFrom DT datatable renderDT
+#' @importFrom htmltools withTags
 mod_generate_taxalist_server <- function(id, donnees, limites, taxa){
   moduleServer(
     id,
@@ -50,15 +51,43 @@ mod_generate_taxalist_server <- function(id, donnees, limites, taxa){
       })
       
       output$ListeEspece <- renderDT({
+        entete <- withTags(
+          table(
+            class = 'display',
+            thead(
+              tr(
+                th(rowspan = 2, 'Ordre'),
+                th(rowspan = 2, 'Famille'),
+                th(rowspan = 2, 'Espèce'),
+                th(rowspan = 2, 'Nom vernaculaire'),
+                th(rowspan = 2, "Nombre d'observations"),
+                th(rowspan = 2, 'Fiche espèce'),
+                th(colspan = 2, 'Protection'),
+                th(colspan = 4, 'Liste rouge')
+              ),
+              tr(
+                th('Echelle'),
+                th('Texte réglementaire'),
+                th('Mondiale'),
+                th('Européenne'),
+                th('Nationale'),
+                th('Régionale')
+              )
+            )
+          )
+        )
+          
         liste_especes() %>% 
           datatable(
+            container = entete,
             filter = 'top',
             rownames = FALSE,
             escape = FALSE,
             options = list(
               dom = 'tlp',
               scrollX = TRUE, 
-              autoWidth = TRUE
+              autoWidth = TRUE,
+              pageLength = 5
             )
           )
         }
