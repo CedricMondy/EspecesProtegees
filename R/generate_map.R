@@ -73,21 +73,52 @@ update_map <- function(mapId, data) {
         levels = orderColors$ordre
     )
     
+    data_points <- data %>% 
+        filter(niveau_precision_localisation == "XY point")
+    
+    data_zones <- data %>% 
+        filter(niveau_precision_localisation != "XY point")
+    
     leafletProxy(mapId) %>% 
         clearMarkers() %>% 
         clearShapes() %>% 
         clearControls() %>% 
-        addCircleMarkers(
-            data = inpn_to_sf(data),
-            weight = 2,
-            fillColor = palOrderColor(data$ordre),
-            fillOpacity = 1,
-            radius = 4,
-            stroke = FALSE,
-            popup = ~glue("<b><i>{espece} {ifelse(!is.na(nom_vernaculaire), paste0('(', nom_vernaculaire, ')'), '')}</i></b><br>{ifelse(!is.na(commune), commune, '')} ({departement})<br>{date_debut}<br><i>({libelle_jeu_donnees})</i><br><small>{niveau_precision_localisation}</small>"),
-            label = ~espece,
-            group = "Observations"
-        ) %>%
+        (function(x) {
+            if (nrow(data_zones) > 0) {
+                x %>% 
+                  addCircleMarkers(
+                      data = inpn_to_sf(data_zones),
+                      fillColor = palOrderColor(data_zones$ordre),
+                      fillOpacity = 1,
+                      radius = 8,
+                      stroke = FALSE,
+                      popup = ~glue("<b><i>{espece} {ifelse(!is.na(nom_vernaculaire), paste0('(', nom_vernaculaire, ')'), '')}</i></b><br>{ifelse(!is.na(commune), commune, '')} ({departement})<br>{date_debut}<br><i>({libelle_jeu_donnees})</i><br><small>{niveau_precision_localisation}</small>"),
+                      label = ~espece,
+                      group = "Observations"
+                      )  
+                } else {
+                    x
+                    }
+            }) %>%
+        (function(x) {
+            if (nrow(data_points) > 0) {
+                x %>% 
+                    addCircleMarkers(
+                        data = inpn_to_sf(data_points),
+                        fillColor = palOrderColor(data_points$ordre),
+                        fillOpacity = 1,
+                        radius = 5,
+                        stroke = TRUE,
+                        weight = 2,
+                        color = "black",
+                        popup = ~glue("<b><i>{espece} {ifelse(!is.na(nom_vernaculaire), paste0('(', nom_vernaculaire, ')'), '')}</i></b><br>{ifelse(!is.na(commune), commune, '')} ({departement})<br>{date_debut}<br><i>({libelle_jeu_donnees})</i><br><small>{niveau_precision_localisation}</small>"),
+                        label = ~espece,
+                        group = "Observations"
+                        )
+                } else {
+                    x
+                    }
+            }) %>%
         addLayersControl(baseGroups = c(
             "Orthophotos", "OSM", "IGN"
         ),
