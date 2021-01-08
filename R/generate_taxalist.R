@@ -52,13 +52,54 @@ generate_taxalist <- function(data, limits, taxa) {
             espece = espece,
             protection = LB_TYPE_STATUT,
             lien = paste0(
-                "<a href='", DOC_URL, "' target='_blank'>", FULL_CITATION, "</a>"
+                "<a href='", 
+                DOC_URL,
+                "' target='_blank'>",
+                FULL_CITATION, 
+                "</a>"
             )
+        )
+    
+    conservation <- left_join(
+        select(liste, espece),
+        filter(status, REGROUPEMENT_TYPE == "Liste rouge"),
+        by = c("espece" = "LB_NOM")
+        ) %>% 
+        transmute(
+            espece = espece,
+            liste_rouge = LB_TYPE_STATUT,
+            statut =  
+                ifelse(
+                    is.na(CODE_STATUT),
+                    NA_character_,
+                    paste0("<a href='",
+                           DOC_URL,
+                           "' target='_blank'>",
+                           LABEL_STATUT, 
+                           "</a>"
+                           )
+                    )
+            ) %>% 
+        mutate(
+            liste_rouge = liste_rouge %>% 
+                str_remove_all(
+                    pattern = "Liste rouge "
+                    ) %>% 
+                str_to_sentence()
+            ) %>%
+        pivot_wider(
+            id_cols = espece,
+            names_from = liste_rouge,
+            values_from = statut
         )
     
     liste %>% 
         left_join(
             protection,
+            by = "espece"
+        ) %>% 
+        left_join(
+            conservation,
             by = "espece"
         ) %>% 
         select(
@@ -69,6 +110,10 @@ generate_taxalist <- function(data, limits, taxa) {
             `Nombre d'observations` = n,
             `Fiche espèce` = info,
             `Protection` = protection,
-            `Texte réglementaire` = lien
+            `Texte réglementaire` = lien,
+            `Mondiale`,
+            `Européenne`,
+            `Nationale`,
+            `Régionale`
         )
 }
