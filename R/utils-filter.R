@@ -1,8 +1,11 @@
 #' @importFrom dplyr filter
 filter_data <- function(data, annees, departements, precisions) {
     data %>% 
-        filter( annee >= annees[1] & annee <= annees[2] ) %>% 
         (function(df) {
+            if (all(!is.null(annees)))
+                df <- df %>% 
+                    filter( annee >= annees[1] & annee <= annees[2] )
+            
             if (!is.null(departements))
                 df <- df %>% 
                     filter(departement %in% departements)
