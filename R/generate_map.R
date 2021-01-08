@@ -12,7 +12,6 @@ inpn_to_sf <- function(inpn) {
 #' @importFrom dplyr distinct ungroup
 #' @importFrom leaflet leaflet leafletOptions addProviderTiles providerTileOptions addScaleBar addLayersControl fitBounds
 #' @importFrom leaflet.extras addFullscreenControl addResetMapButton addSearchOSM searchOptions 
-#' @importFrom leafgl addGlPoints
 generate_map <- function() {
     
     bbox <- mammals %>% 
@@ -62,8 +61,7 @@ generate_map <- function() {
 }
 
 #' @importFrom dplyr distinct ungroup
-#' @importFrom leaflet colorFactor leafletProxy clearShapes clearControls addLayersControl
-#' @importFrom leafgl clearGlLayers addGlPoints
+#' @importFrom leaflet colorFactor leafletProxy clearShapes clearControls addLayersControl clearMarkers addCircleMarkers
 #' @importFrom glue glue
 update_map <- function(mapId, data) {
     orderColors <- data %>% 
@@ -76,15 +74,16 @@ update_map <- function(mapId, data) {
     )
     
     leafletProxy(mapId) %>% 
-        clearGlLayers() %>% 
+        clearMarkers() %>% 
         clearShapes() %>% 
         clearControls() %>% 
-        addGlPoints(
+        addCircleMarkers(
             data = inpn_to_sf(data),
             weight = 2,
             fillColor = palOrderColor(data$ordre),
             fillOpacity = 1,
-            radius = 10,
+            radius = 4,
+            stroke = FALSE,
             popup = ~glue("<b><i>{espece} {ifelse(!is.na(nom_vernaculaire), paste0('(', nom_vernaculaire, ')'), '')}</i></b><br>{ifelse(!is.na(commune), commune, '')} ({departement})<br>{date_debut}<br><i>({libelle_jeu_donnees})</i><br><small>{niveau_precision_localisation}</small>"),
             label = ~espece,
             group = "Observations"

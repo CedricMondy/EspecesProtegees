@@ -7,11 +7,11 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList 
-#' @importFrom leafgl leafglOutput
+#' @importFrom leaflet leafletOutput
 mod_generate_map_ui <- function(id){
   ns <- NS(id)
   tagList(
-    leafglOutput(ns("map"))
+    leafletOutput(ns("map"))
   )
 }
     
@@ -19,13 +19,12 @@ mod_generate_map_ui <- function(id){
 #'
 #' @noRd 
 #' @importFrom shiny moduleServer observe req reactive
-#' @importFrom leafgl renderLeafgl
+#' @importFrom leaflet renderLeaflet
 mod_generate_map_server <- function(id, donnees, taxa){
   moduleServer(
     id,
     function(input, output, session){
-      output$map <- generate_map() %>% 
-        renderLeafgl()
+      output$map <- renderLeaflet(generate_map() )
       
       observe({
         req(donnees, taxa)
