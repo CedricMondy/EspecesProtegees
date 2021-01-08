@@ -1,5 +1,6 @@
 #' @importFrom dplyr filter count group_by summarise arrange desc mutate left_join select transmute
 #' @importFrom stringr str_remove_all str_to_sentence
+#' @importFrom tidyr pivot_wider
 generate_taxalist <- function(data, limits, taxa) {
     liste <- data %>% 
         filter_limits(limits = limits) %>% 

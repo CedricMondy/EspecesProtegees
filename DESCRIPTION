@@ -27,7 +27,8 @@ Imports:
     shiny.semantic,
     shinybusy,
     stringr,
-    purrr
+    purrr,
+    tidyr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
