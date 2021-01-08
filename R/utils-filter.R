@@ -16,23 +16,29 @@ filter_data <- function(data, annees, departements, precisions) {
 }
 
 filter_limits <- function(data, limits) {
-    data %>% 
-        filter(
-            longitude >= limits$west,
-            longitude <= limits$east,
-            latitude >= limits$south,
-            latitude <= limits$north
-        )
+    df <- data
+    
+    if (!is.null(limits))
+        df <- df %>% 
+            filter(
+                longitude >= limits$west,
+                longitude <= limits$east,
+                latitude >= limits$south,
+                latitude <= limits$north
+                )
+    
+    df
 }
 
 filter_taxa <- function(data, taxa) {
-    if (!is.null(taxa)) {
-        data %>% 
+    df <- data
+    
+    if (!is.null(taxa))
+        df <- df %>% 
             filter(
                 (ordre %in% taxa) |
                     (espece %in% taxa)
             )
-    } else {
-        data
-    }
+    
+    df
 }
