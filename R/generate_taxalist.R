@@ -2,6 +2,14 @@
 #' @importFrom stringr str_remove_all str_to_sentence
 #' @importFrom tidyr pivot_wider
 generate_taxalist <- function(data, limits, taxa) {
+    add_missing_columns <- function(df, columns) {
+        missing_columns <- columns[! columns %in% colnames(df)]
+        
+        df[, missing_columns] <- NA
+        
+        df
+    }
+    
     liste <- data %>% 
         filter_limits(limits = limits) %>% 
         filter_taxa(taxa = taxa) %>% 
@@ -92,6 +100,12 @@ generate_taxalist <- function(data, limits, taxa) {
             id_cols = espece,
             names_from = liste_rouge,
             values_from = statut
+        ) %>% 
+        add_missing_columns(
+            columns = c('Mondiale',
+                        'Européenne',
+                        'Nationale',
+                        'Régionale')
         )
     
     liste %>% 
