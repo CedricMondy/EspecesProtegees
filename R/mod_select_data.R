@@ -22,9 +22,7 @@ mod_select_data_ui <- function(id){
         "Crustacés et mollusques" = "molluscs"
       ),
       multiple = FALSE
-    ),
-    div(),
-    uiOutput(outputId = ns("GetData"))
+    )
   )
 }
     
@@ -74,18 +72,6 @@ mod_select_data_server <- function(id){
           molluscs = molluscs,
           reptiles = reptiles
           )
-        
-        output$download <- downloadHandler(
-          filename = paste0(CustomLabel, ".csv"),
-          content = function(file) {
-            write.csv2(
-              x = raw_data,
-              file = file, 
-              row.names = FALSE,
-              fileEncoding = "UTF-8"
-            )
-          }
-        )
         
         palOrdre <- colorFactor(
           palette = paletteer_d("RColorBrewer::Dark2") %>% 

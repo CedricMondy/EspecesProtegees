@@ -20,16 +20,6 @@ app_ui <- function(request) {
   
   ChoixDepartements <- levels(birds$departement)
   
-  ChoixPrecisions <- levels(birds$niveau_precision_localisation) %>% 
-    as.list() %>% 
-    (function(x) {
-      set_names(x = x,
-                nm = x %>% 
-                  str_remove_all(pattern = "XY ") %>% 
-                  str_remove_all(pattern = "centroïde ") %>% 
-                  str_to_sentence())
-    })
-  
   tagList(
     # Leave this function for adding external resources
     golem_add_external_resources(),
@@ -75,13 +65,6 @@ app_ui <- function(request) {
               label = "Département(s)",
               placeholder = "Tous les départements",
               choices = ChoixDepartements
-              ),
-            br(),
-            mod_select_ui(
-              id = "precisions",
-              label = "Niveau de précision géographique",
-              placeholder = "Tous les niveaux",
-              choices = ChoixPrecisions
               )
           ),
           main_panel(

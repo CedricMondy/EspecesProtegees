@@ -11,7 +11,7 @@ inpn_to_sf <- function(inpn) {
 #' @importFrom sf st_bbox
 #' @importFrom dplyr distinct ungroup
 #' @importFrom leaflet leaflet leafletOptions addProviderTiles providerTileOptions addScaleBar addLayersControl fitBounds
-#' @importFrom leaflet.extras addFullscreenControl addResetMapButton addSearchOSM searchOptions 
+#' @importFrom leaflet.extras addResetMapButton addSearchOSM searchOptions 
 generate_map <- function() {
     
     bbox <- mammals %>% 
@@ -39,7 +39,6 @@ generate_map <- function() {
                              updatewhenZooming = TRUE,
                              updateWhenIdle = TRUE
                          )) %>% 
-        addFullscreenControl(position = "topright") %>%
         addScaleBar(position = "bottomright") %>% 
         addResetMapButton() %>% 
         addSearchOSM(
