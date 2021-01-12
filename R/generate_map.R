@@ -45,11 +45,12 @@ generate_map <- function() {
             options = searchOptions(
                 autoCollapse = TRUE, 
                 minLength = 2,
-                position = "bottomleft"
+                position = "topleft",
+                hideMarkerOnCollapse = TRUE
             )
         ) %>%
         addLayersControl(baseGroups = c(
-            "Orthophotos", "OSM", "IGN"
+            "OSM", "IGN", "Orthophotos"
         ),
         position = "topright") %>% 
         fitBounds(lng1 = bbox[["xmin"]],
@@ -119,7 +120,7 @@ update_map <- function(mapId, data) {
                     }
             }) %>%
         addLayersControl(baseGroups = c(
-            "Orthophotos", "OSM", "IGN"
+            "OSM", "IGN", "Orthophotos"
         ),
         overlayGroups = c(
             "Observations"
