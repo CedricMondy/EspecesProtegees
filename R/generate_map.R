@@ -63,6 +63,9 @@ generate_map <- function() {
 #' @importFrom dplyr distinct ungroup
 #' @importFrom leaflet colorFactor leafletProxy clearShapes clearControls addLayersControl clearMarkers addCircleMarkers
 #' @importFrom glue glue
+#' @importFrom htmltools HTML
+#' @importFrom purrr map
+#' @importFrom stringr str_wrap str_replace_all
 update_map <- function(mapId, data) {
     orderColors <- data %>% 
         ungroup() %>% 
@@ -73,12 +76,19 @@ update_map <- function(mapId, data) {
         levels = orderColors$ordre
     )
     
+    data <- data %>% 
+        mutate(
+            labs = glue("<b><i>{espece}</i></b><br><b>{ifelse(!is.na(nom_vernaculaire), paste0('(', str_wrap(nom_vernaculaire, width = 40), ')'), '')}</b><br>{ifelse(!is.na(commune), commune, '')} ({departement})<br>{date_debut}<br><i>({str_wrap(libelle_jeu_donnees, width = 40)})</i><br><small>{niveau_precision_localisation}</small>") %>% 
+                str_replace_all(pattern = "\n", replacement = "<br>") %>% 
+        map(HTML)
+        )
     data_points <- data %>% 
-        filter(niveau_precision_localisation == "XY point")
+        filter(niveau_precision_localisation == "XY point") 
     
     data_zones <- data %>% 
         filter(niveau_precision_localisation != "XY point")
     
+
     leafletProxy(mapId) %>% 
         clearMarkers() %>% 
         clearShapes() %>% 
@@ -92,8 +102,7 @@ update_map <- function(mapId, data) {
                       fillOpacity = 1,
                       radius = 8,
                       stroke = FALSE,
-                      popup = ~glue("<b><i>{espece} {ifelse(!is.na(nom_vernaculaire), paste0('(', nom_vernaculaire, ')'), '')}</i></b><br>{ifelse(!is.na(commune), commune, '')} ({departement})<br>{date_debut}<br><i>({libelle_jeu_donnees})</i><br><small>{niveau_precision_localisation}</small>"),
-                      label = ~espece,
+                      label = ~labs,
                       group = "Observations"
                       )  
                 } else {
@@ -111,8 +120,7 @@ update_map <- function(mapId, data) {
                         stroke = TRUE,
                         weight = 2,
                         color = "black",
-                        popup = ~glue("<b><i>{espece} {ifelse(!is.na(nom_vernaculaire), paste0('(', nom_vernaculaire, ')'), '')}</i></b><br>{ifelse(!is.na(commune), commune, '')} ({departement})<br>{date_debut}<br><i>({libelle_jeu_donnees})</i><br><small>{niveau_precision_localisation}</small>"),
-                        label = ~espece,
+                        label = ~labs,
                         group = "Observations"
                         )
                 } else {
