@@ -22,20 +22,16 @@ mod_generate_observationlist_ui <- function(id){
 #' @importFrom shiny moduleServer reactive req renderUI downloadButton downloadHandler
 #' @importFrom dplyr filter select
 #' @importFrom DT datatable renderDT
-mod_generate_observationlist_server <- function(id, donnees, limites, taxa){
+mod_generate_observationlist_server <- function(id, donnees){
   moduleServer(
     id,
     function(input, output, session){
       ns <- session$ns
 
       liste_observations <- reactive({
-        req(donnees(), limites(), taxa)
+        req(donnees())
         
-        generate_observationlist(
-          data = donnees(),
-          limits = limites(),
-          taxa = taxa()
-        )
+        generate_observationlist(data = donnees())
       })
       
       output$ListeObservations <- renderDT({

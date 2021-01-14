@@ -1,6 +1,6 @@
 #' @importFrom dplyr count group_by summarise arrange desc mutate select across
 
-generate_taxalist <- function(data, limits, taxa) {
+generate_taxalist <- function(data) {
     cols <- select(data,
                    ordre, famille, espece, nom_vernaculaire, 
                    lien_fiche, niveau_protection, lien_protection, 
@@ -8,8 +8,6 @@ generate_taxalist <- function(data, limits, taxa) {
         colnames()
     
     data %>% 
-        filter_limits(limits = limits) %>% 
-        filter_taxa(taxa = taxa) %>% 
         count(across(all_of(cols))) %>% 
         (function(df) {
             n_ordre <- group_by(df, ordre) %>% 

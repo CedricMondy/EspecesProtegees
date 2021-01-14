@@ -22,20 +22,16 @@ mod_generate_taxalist_ui <- function(id){
 #' @importFrom shiny moduleServer reactive req renderUI downloadButton downloadHandler
 #' @importFrom DT datatable renderDT
 #' @importFrom htmltools withTags
-mod_generate_taxalist_server <- function(id, donnees, limites, taxa){
+mod_generate_taxalist_server <- function(id, donnees){
   moduleServer(
     id,
     function(input, output, session){
       ns <- session$ns
       
       liste_especes <- reactive({
-        req(donnees(), limites(), taxa)
+        req(donnees())
         
-        generate_taxalist(
-          data = donnees(),
-          limits = limites(),
-          taxa = taxa()
-        )
+        generate_taxalist(data = donnees())
       })
       
       output$GetData <- renderUI({

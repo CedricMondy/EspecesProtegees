@@ -8,10 +8,12 @@
 app_server <- function( input, output, session ) {
   # List the first level callModules here
   donnees <- mod_select_data_server(id = "donnees")
+  
   annees <- mod_select_period_server(
     id = "periode",
     raw_data = donnees
   )
+  
   departements <- mod_select_server(id = "departements")
 
   DonneesFiltrees <- reactive({
@@ -37,18 +39,22 @@ app_server <- function( input, output, session ) {
     taxa = taxa
   )
   
+  DonneesVisibles <- reactive({
+    DonneesFiltrees() %>% 
+      filter_limits(limites()) %>% 
+      filter_taxa(taxa())
+  })
+  
   mod_generate_taxalist_server(
     id = "especes",
-    donnees = DonneesFiltrees,
-    limites = limites,
-    taxa    = taxa
+    donnees = DonneesVisibles
   )
   
   mod_generate_observationlist_server(
     id = "observations",
-    donnees = DonneesFiltrees,
-    limites = limites,
-    taxa    = taxa
+    donnees = DonneesVisibles
+  )
+  
   )
   
 }

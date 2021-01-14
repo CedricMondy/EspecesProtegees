@@ -1,8 +1,6 @@
 #' @importFrom dplyr select
-generate_observationlist <- function(data, limits, taxa) {
+generate_observationlist <- function(data) {
     data %>% 
-        filter_limits(limits = limits) %>% 
-        filter_taxa(taxa = taxa) %>% 
         select(
             `Nom vernaculaire` = nom_vernaculaire,
             `Ordre`   = ordre,
