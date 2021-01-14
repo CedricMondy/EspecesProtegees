@@ -45,3 +45,11 @@ filter_taxa <- function(data, taxa) {
     
     df
 }
+
+add_missing_columns <- function(df, columns) {
+    missing_columns <- columns[! columns %in% colnames(df)]
+    
+    df[, missing_columns] <- NA
+    
+    df
+}

@@ -1,20 +1,16 @@
-#' @importFrom dplyr filter count group_by summarise arrange desc mutate left_join select transmute
-#' @importFrom stringr str_remove_all str_to_sentence
-#' @importFrom tidyr pivot_wider
+#' @importFrom dplyr count group_by summarise arrange desc mutate select across
+
 generate_taxalist <- function(data, limits, taxa) {
-    add_missing_columns <- function(df, columns) {
-        missing_columns <- columns[! columns %in% colnames(df)]
-        
-        df[, missing_columns] <- NA
-        
-        df
-    }
+    cols <- select(data,
+                   ordre, famille, espece, nom_vernaculaire, 
+                   lien_fiche, niveau_protection, lien_protection, 
+                   matches("^(Liste rouge).+_lien$")) %>% 
+        colnames()
     
-    liste <- data %>% 
+    data %>% 
         filter_limits(limits = limits) %>% 
         filter_taxa(taxa = taxa) %>% 
-        count(ordre, famille, espece, nom_vernaculaire, 
-              url_inpn, url_ofb) %>% 
+        count(across(all_of(cols))) %>% 
         (function(df) {
             n_ordre <- group_by(df, ordre) %>% 
                 summarise(n = sum(n),
@@ -34,101 +30,18 @@ generate_taxalist <- function(data, limits, taxa) {
                 ) %>% 
                 arrange(ordre, famille, desc(n))
         }) %>% 
-        mutate(
-            inpn = paste0("<a href='", url_inpn, "' target='_blank'>INPN</a>"),
-            ofb = ifelse(
-                !is.na(url_ofb),
-                paste0(" | <a href='", url_ofb, "' target='_blank'>OFB</a>"),
-                ""
-            )
-        ) %>% 
-        mutate(
-            info = paste0(inpn, ofb)
-        ) 
-    
-    protection <- left_join(
-        select(liste, espece),
-        filter(status, REGROUPEMENT_TYPE == "Protection"),
-        by = c("espece" = "LB_NOM")
-    ) %>% 
-        mutate(LB_TYPE_STATUT = str_remove_all(
-            string = LB_TYPE_STATUT,
-            pattern = "Protection "
-        ) %>% 
-            str_to_sentence()
-        ) %>% 
-        transmute(
-            espece = espece,
-            protection = LB_TYPE_STATUT,
-            lien = paste0(
-                "<a href='", 
-                DOC_URL,
-                "' target='_blank'>",
-                FULL_CITATION, 
-                "</a>"
-            )
-        )
-    
-    conservation <- left_join(
-        select(liste, espece),
-        filter(status, REGROUPEMENT_TYPE == "Liste rouge"),
-        by = c("espece" = "LB_NOM")
-        ) %>% 
-        transmute(
-            espece = espece,
-            liste_rouge = LB_TYPE_STATUT,
-            statut =  
-                ifelse(
-                    is.na(CODE_STATUT),
-                    NA_character_,
-                    paste0("<a href='",
-                           DOC_URL,
-                           "' target='_blank'>",
-                           LABEL_STATUT, 
-                           "</a>"
-                           )
-                    )
-            ) %>% 
-        mutate(
-            liste_rouge = liste_rouge %>% 
-                str_remove_all(
-                    pattern = "Liste rouge "
-                    ) %>% 
-                str_to_sentence()
-            ) %>%
-        pivot_wider(
-            id_cols = espece,
-            names_from = liste_rouge,
-            values_from = statut
-        ) %>% 
-        add_missing_columns(
-            columns = c('Mondiale',
-                        'Européenne',
-                        'Nationale',
-                        'Régionale')
-        )
-    
-    liste %>% 
-        left_join(
-            protection,
-            by = "espece"
-        ) %>% 
-        left_join(
-            conservation,
-            by = "espece"
-        ) %>% 
         select(
             `Ordre`   = ordre,
             `Famille` = famille,
             `Espèce`  = espece,
             `Nom vernaculaire` = nom_vernaculaire,
             `Nombre d'observations` = n,
-            `Fiche espèce` = info,
-            `Protection` = protection,
-            `Texte réglementaire` = lien,
-            `Mondiale`,
-            `Européenne`,
-            `Nationale`,
-            `Régionale`
+            `Fiche espèce` = lien_fiche,
+            `Protection` = niveau_protection,
+            `Texte réglementaire` = lien_protection,
+            `Mondiale` = `Liste rouge mondiale_lien`,
+            `Européenne` = `Liste rouge européenne_lien`,
+            `Nationale` = `Liste rouge nationale_lien`,
+            `Régionale` = `Liste rouge régionale_lien`
         )
 }

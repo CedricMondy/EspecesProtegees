@@ -1,12 +1,23 @@
 
 # PACKAGES ----------------------------------------------------------------
-if (!require(pacman))
-    install.packages("pacman")
-
-pacman::p_load(here, purrr, vroom, janitor, dplyr, lubridate, forcats, glue, usethis, curl)
-
+dependencies <- c("import", "here", "vroom", "janitor", "dplyr", "lubridate", "glue", "usethis", "stringr", "tidyr", "tibble", "tidyselect")
+#use function defined in install_dependencies.R
+install_dependencies(dependencies)
 
 # FUNCTIONS ---------------------------------------------------------------
+
+import::from(here, here)
+import::from(vroom, vroom)
+import::from(janitor, clean_names)
+import::from(magrittr, `%>%`)
+import::from(tibble, tibble)
+import::from(dplyr, filter, select, left_join, bind_rows, bind_cols, mutate, group_by, arrange, slice, ungroup, case_when, across, distinct)
+import::from(glue, glue)
+import::from(lubridate, as_date, year)
+import::from(stringr, str_extract, str_remove_all, str_to_sentence)
+import::from(tidyr, pivot_wider)
+import::from(usethis, use_data)
+
 find_taxonomy <- function(cd_ref, taxref) {
     selection <- taxref %>% 
         filter(CD_NOM %in% cd_ref)
@@ -32,15 +43,16 @@ find_taxonomy <- function(cd_ref, taxref) {
                ordre = ORDRE,
                classe = CLASSE,
                url_inpn = URL)  %>% 
-        mutate(ordre = if_else(
+        mutate(ordre = ifelse(
             famille == "Planorbidae",
             "Hygrophila",
             ordre
-        )
+        ),
+        lien_inpn = glue("<a href='{url_inpn}' target='_blank'>INPN</a>")
         )
 }
 
-prepare_taxa_data <- function(df, condition, taxref, fiches_ofb) {
+prepare_taxa_data <- function(df, condition, taxref, fiches_ofb, protection, conservation) {
     df %>% 
         filter({{condition}}) %>% 
         select(libelle_jeu_donnees, observateur, determinateur, cd_ref, date_debut, latitude, longitude, niveau_precision_localisation, commune, departement, id_sinp_occtax, annee) %>% 
@@ -50,8 +62,11 @@ prepare_taxa_data <- function(df, condition, taxref, fiches_ofb) {
         arrange(date_debut) %>% 
         slice(1) %>% 
         ungroup() %>% 
-        left_join(fiches_ofb, by = "espece")
-    
+        left_join(fiches_ofb, by = "espece") %>% 
+        left_join(protection, by = c("espece" = "lb_nom")) %>% 
+        left_join(conservation, by = c("espece" = "lb_nom")) %>% 
+        mutate(lien_fiche = glue("{lien_inpn}{ifelse(!is.na(lien_ofb), paste0(' | ', lien_ofb), '')}")) %>% 
+        select(-lien_inpn, -lien_ofb, -url_inpn, -url_ofb)
 }
 
 # DATA IMPORT--------------------------------------------------------------
@@ -59,7 +74,7 @@ prepare_taxa_data <- function(df, condition, taxref, fiches_ofb) {
 ## requête Obenops: https://openobs.mnhn.fr/openobs-hub/occurrences/search?q=(protection%3A%22true%22)%20AND%20(state%3A%C3%8Ele-de-France)%20AND%20(sensitive%3A%22XY%20point%22%20OR%20sensitive%3A%22XY%20centro%C3%AFde%20ligne%2Fpolygone%22%20OR%20sensitive%3A%22XY%20centro%C3%AFde%20commune%22%20OR%20sensitive%3A%22XY%20centro%C3%AFde%20maille%22)#tab_mapView
 exportFile <- "records-2021-01-06"
 
-AllSpeciesRaw <- here("dev/rawdata", exportFile, paste0(exportFile, ".csv")) %>% 
+AllSpeciesRaw <- here("dev/rawdata", exportFile, glue("{exportFile}.csv")) %>% 
     vroom()
 
 ## TAXREF ----
@@ -129,74 +144,140 @@ AllSpecies <- AllSpeciesRaw %>%
     mutate(
         niveau_precision_localisation = factor(
             niveau_precision_localisation,
-            levels = paste0(
-                "XY ", 
-                c(
-                    "point", 
-                    "centroïde ligne/polygone",
-                    "centroïde commune",
-                    "centroïde maille"
-                )
-            )
-        ),
+            levels = glue("XY {c('point', 'centroïde ligne/polygone', 'centroïde commune', 'centroïde maille')}")
+            ),
         departement = factor(
             departement,
             levels = departements_idf
         )) %>%
     select(where(~ !(all(is.na(.)))))
 
-status <- statuts %>% 
+status <- statuts %>%
     filter(
         LB_ADM_TR %in% c("France", "France métropolitaine",
                          "Ile-de-France",
                          departements_idf)
     )
 
-url_ofb <- fiches_ofb %>% 
+uicn <- status %>% 
+    clean_names() %>% 
+    filter(regroupement_type == "Liste rouge") %>% 
+    # Gère les statuts multiples pour une même espèce et une même liste
+    mutate(annee = full_citation %>% 
+               str_extract(pattern = "\\d{4}"),
+           statut = factor(label_statut,
+                           levels = c(
+                               "Non applicable",
+                               "Non évaluée",
+                               "Données insuffisantes",
+                               "Préoccupation mineure",
+                               "Quasi menacée",
+                               "Vulnérable",
+                               "En danger",
+                               "En danger critique",
+                               "Disparue au niveau régional",
+                               "On ne sait pas si l'espèce n'est pas éteinte ou disparue",
+                               "Eteinte à l'état sauvage",
+                               "Eteinte au niveau mondial"
+                           ))) %>% 
+    mutate(statut_num = as.numeric(statut)) %>% 
+    group_by(lb_nom, lb_type_statut) %>% 
+    # ne conserve que la liste rouge la plus récente
+    filter(annee == max(annee)) %>% 
+    # ne conserve que l'évaluation la plus préoccupante
+    filter(statut_num == max(statut_num)) %>% 
+    slice(1) %>% 
+    ungroup() %>% 
+    mutate(lien_uicn = glue("<a href='{doc_url}' target='_blank'>{statut}</a>")) %>%
+    distinct(lb_nom, lb_type_statut, statut, lien_uicn) %>% 
+    (function(df) {
+        pivot_wider(
+                 df,
+                 id_cols = lb_nom,
+                 names_from = lb_type_statut,
+                 values_from = statut,
+                 values_fill = "Non évaluée"
+                 ) %>% 
+            left_join(
+                pivot_wider(
+                    df,
+                    id_cols = lb_nom,
+                    names_from = lb_type_statut,
+                    values_from = lien_uicn
+                    ),
+                by = "lb_nom",
+                suffix = c("", "_lien")
+                )
+    })
+   
+
+protections <- status %>% 
+    clean_names() %>% 
+    filter(regroupement_type == "Protection") %>% 
+    mutate(niveau_protection = lb_type_statut %>% 
+               str_remove_all(pattern = "Protection ") %>% 
+               str_to_sentence()) %>% 
+    mutate(lien_protection = glue("<a href='{doc_url}' target='_blank'>{full_citation}</a>")) %>% 
+    distinct(lb_nom, niveau_protection, lien_protection)
+
+fiches_ofb <- fiches_ofb %>% 
     left_join(select(taxref, LB_NOM, CD_REF), 
               by = c("espece" = "LB_NOM")) %>% 
     select(-espece) %>% 
     bind_cols(find_taxonomy(cd_ref = .$CD_REF, taxref = taxref)) %>% 
-    select(espece, url_ofb = lien_fiche_ofb)
+    select(espece, url_ofb = lien_fiche_ofb) %>% 
+    mutate(lien_ofb = glue("<a href='{url_ofb}' target='_blank'>OFB</a>"))
 
 ## INSECTS
 insects <- AllSpecies %>%
     prepare_taxa_data(condition = classe == "Hexapoda",
                       taxref = taxref,
-                      fiches_ofb = url_ofb)
+                      fiches_ofb = fiches_ofb,
+                      protection = protections,
+                      conservation = uicn)
 
 ## BIRDS
 birds <- AllSpecies %>% 
-    prepare_taxa_data(condition = (classe == "Aves" & annee >= 2018),
+    prepare_taxa_data(condition = (classe == "Aves" & annee >= 2017),
                       taxref = taxref,
-                      fiches_ofb = url_ofb)
+                      fiches_ofb = fiches_ofb,
+                      protection = protections,
+                      conservation = uicn)
 
 ## MAMMALS
 mammals <- AllSpecies %>% 
     prepare_taxa_data(classe == "Mammalia",
                       taxref = taxref,
-                      fiches_ofb = url_ofb) 
+                      fiches_ofb = fiches_ofb,
+                      protection = protections,
+                      conservation = uicn) 
 
 ## FISH
 fish <- AllSpecies %>% 
     prepare_taxa_data(classe %in% c("Actinopterygii", "Petromyzonti"),
                       taxref = taxref,
-                      fiches_ofb = url_ofb)
+                      fiches_ofb = fiches_ofb,
+                      protection = protections,
+                      conservation = uicn)
 
 ## REPTILES AND AMPHIBIANS
 reptiles <- AllSpecies %>% 
     prepare_taxa_data(condition = (classe == "Amphibia" | 
                                        (is.na(classe) & ordre %in% c("Chelonii", "Squamata"))),
                       taxref = taxref,
-                      fiches_ofb = url_ofb)
+                      fiches_ofb = fiches_ofb,
+                      protection = protections,
+                      conservation = uicn)
 
 ## MOLLUSCS AND CRUSTACEANS
 molluscs <- AllSpecies %>% 
     prepare_taxa_data(classe %in% c("Bivalvia", "Gastropoda", "Malacostraca"),
                       taxref = taxref,
-                      fiches_ofb = url_ofb)
+                      fiches_ofb = fiches_ofb,
+                      protection = protections,
+                      conservation = uicn)
 
 # DATA EXPORT -------------------------------------------------------------
 
-use_data(insects, birds, mammals, fish, reptiles, molluscs, status,
+use_data(insects, birds, mammals, fish, reptiles, molluscs,
          internal = TRUE, overwrite = TRUE)
