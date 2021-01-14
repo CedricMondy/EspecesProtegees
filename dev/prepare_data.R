@@ -14,7 +14,7 @@ import::from(tibble, tibble)
 import::from(dplyr, filter, select, left_join, bind_rows, bind_cols, mutate, group_by, arrange, slice, ungroup, case_when, across, distinct)
 import::from(glue, glue)
 import::from(lubridate, as_date, year)
-import::from(stringr, str_extract, str_remove_all, str_to_sentence)
+import::from(stringr, str_extract, str_remove_all, str_to_sentence, str_replace_na)
 import::from(tidyr, pivot_wider)
 import::from(usethis, use_data)
 
@@ -65,7 +65,23 @@ prepare_taxa_data <- function(df, condition, taxref, fiches_ofb, protection, con
         left_join(fiches_ofb, by = "espece") %>% 
         left_join(protection, by = c("espece" = "lb_nom")) %>% 
         left_join(conservation, by = c("espece" = "lb_nom")) %>% 
-        mutate(lien_fiche = glue("{lien_inpn}{ifelse(!is.na(lien_ofb), paste0(' | ', lien_ofb), '')}")) %>% 
+        mutate(lien_fiche = glue("{lien_inpn}{ifelse(!is.na(lien_ofb), paste0(' | ', lien_ofb), '')}"),
+               `Liste rouge mondiale` = str_replace_na(
+                   string = `Liste rouge mondiale`,
+                   replacement = "Non évaluée"
+               ),
+               `Liste rouge européenne` = str_replace_na(
+                   string = `Liste rouge européenne`,
+                   replacement = "Non évaluée"
+               ),
+               `Liste rouge nationale` = str_replace_na(
+                   string = `Liste rouge nationale`,
+                   replacement = "Non évaluée"
+               ),
+               `Liste rouge régionale` = str_replace_na(
+                   string = `Liste rouge régionale`,
+                   replacement = "Non évaluée"
+               )) %>% 
         select(-lien_inpn, -lien_ofb, -url_inpn, -url_ofb)
 }
 
@@ -238,7 +254,7 @@ insects <- AllSpecies %>%
 
 ## BIRDS
 birds <- AllSpecies %>% 
-    prepare_taxa_data(condition = (classe == "Aves" & annee >= 2017),
+    prepare_taxa_data(condition = (classe == "Aves" & annee >= 2018),
                       taxref = taxref,
                       fiches_ofb = fiches_ofb,
                       protection = protections,
