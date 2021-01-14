@@ -3,7 +3,6 @@
 #' @param input,output,session Internal parameters for {shiny}. 
 #'     DO NOT REMOVE.
 #' @import shiny
-#' @importFrom dplyr filter
 #' @noRd
 app_server <- function( input, output, session ) {
   # List the first level callModules here
@@ -55,6 +54,9 @@ app_server <- function( input, output, session ) {
     donnees = DonneesVisibles
   )
   
+  mod_generate_redlists_server(
+    id = "redlist",
+    donnees = DonneesVisibles
   )
   
 }

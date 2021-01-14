@@ -3,17 +3,17 @@
 #' @param request Internal parameter for `{shiny}`. 
 #'     DO NOT REMOVE.
 #' @import shiny
-#' @importFrom shiny.semantic semanticPage sidebar_layout sidebar_panel main_panel tabset segment grid grid_template
+#' @importFrom shiny.semantic semanticPage sidebar_layout sidebar_panel main_panel tabset grid grid_template 
 #' @importFrom shinybusy add_busy_spinner
-#' @importFrom purrr set_names
-#' @importFrom stringr str_remove_all str_to_sentence
 #' @noRd
 app_ui <- function(request) {
-  my_layout <- grid_template(
+  gridLayout <- grid_template(
     default = list(
       areas = rbind(
-        c("map", "treemap")
+        c("map", "treemap"),
+        c("redlist", "redlist")
       ),
+      rows_height = c("auto", "200px"),
       cols_width = c("50%", "50%")
     )
   )
@@ -74,10 +74,11 @@ app_ui <- function(request) {
                 list(
                   menu = "Visualisation",
                 content = shiny.semantic::grid(
-                  my_layout,
+                  gridLayout,
                   map = mod_generate_map_ui(id = "carte"),
-                  treemap = mod_generate_treemap_ui(id = "treemap")
-                )
+                  treemap = mod_generate_treemap_ui(id = "treemap"),
+                  redlist = mod_generate_redlists_ui(id = "redlist")
+                  )
                 ),
                 list(
                   menu = "Données affichées",
@@ -95,7 +96,6 @@ app_ui <- function(request) {
                       )
                     )
                   )
-                  
                 )
               )
             )
