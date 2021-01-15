@@ -14,7 +14,7 @@ inpn_to_sf <- function(inpn) {
 #' @importFrom leaflet.extras addResetMapButton addSearchOSM searchOptions 
 generate_map <- function() {
     
-    bbox <- mammals %>% 
+    bbox <- birds %>% 
         inpn_to_sf() %>% 
         st_bbox()
     
@@ -39,6 +39,12 @@ generate_map <- function() {
                              updatewhenZooming = TRUE,
                              updateWhenIdle = TRUE
                          )) %>% 
+        addProviderTiles("GeoportailFrance.parcels",
+                         group = "Parcelles",
+                         options = providerTileOptions(
+                             updatewhenZooming = TRUE,
+                             updateWhenIdle = TRUE
+                         )) %>% 
         addScaleBar(position = "bottomright") %>% 
         addResetMapButton() %>% 
         addSearchOSM(
@@ -50,7 +56,7 @@ generate_map <- function() {
             )
         ) %>%
         addLayersControl(baseGroups = c(
-            "OSM", "IGN", "Orthophotos"
+            "OSM", "IGN", "Orthophotos", "Parcelles"
         ),
         position = "topright") %>% 
         fitBounds(lng1 = bbox[["xmin"]],
@@ -128,7 +134,7 @@ update_map <- function(mapId, data) {
                     }
             }) %>%
         addLayersControl(baseGroups = c(
-            "OSM", "IGN", "Orthophotos"
+            "OSM", "IGN", "Orthophotos", "Parcelles"
         ),
         overlayGroups = c(
             "Observations"
