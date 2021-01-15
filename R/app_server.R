@@ -35,6 +35,20 @@ app_server <- function( input, output, session ) {
     taxa = taxa
   )
   
+  DonneesChronique <- reactive({
+      req(donnees, departements, limites, taxa)
+      
+      donnees() %>% 
+        filter_departments(departements()) %>% 
+        filter_limits(limites()) %>% 
+        filter_taxa(taxa())
+    })
+  
+  mod_generate_chronic_server(
+      id = "chronic",
+      data = DonneesChronique, years = annees
+    )
+  
   DonneesVisibles <- reactive({
     DonneesFiltrees() %>% 
       filter_limits(limites()) %>% 

@@ -66,7 +66,11 @@ app_ui <- function(request) {
               id = "departements",
               placeholder = "Tous les départements",
               choices = ChoixDepartements
-              )
+              ),
+            br(),
+            hr(),
+            br(),
+            mod_generate_chronic_ui(id = "chronic")
           ),
           main_panel(
             add_busy_spinner(spin = "fading-circle"),
