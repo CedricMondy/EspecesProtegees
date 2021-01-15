@@ -12,7 +12,7 @@ mod_select_data_ui <- function(id){
   tagList(
     selectInput(
       inputId = ns("group"),
-      label = "Groupe taxonomique",
+      label = "",
       choices = list(
         "Oiseaux"                 = "birds",
         "Mammifères"              = "mammals",

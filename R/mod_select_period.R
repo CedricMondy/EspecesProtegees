@@ -6,17 +6,16 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList sliderInput 
-#' @importFrom lubridate year
-mod_select_period_ui <- function(id, min_year){
+#' @importFrom shiny NS tagList sliderInput
+mod_select_period_ui <- function(id, min_year, max_year){
   ns <- NS(id)
   tagList(
     sliderInput(
       inputId = ns("year"),
-      label = "Années",
-      value = c(min_year, year(Sys.Date())),
+      label = "",
+      value = c(min_year, max_year),
       min   = min_year,
-      max   = year(Sys.Date()),
+      max   = max_year,
       sep   = "",
       ticks = FALSE
     )
@@ -25,7 +24,7 @@ mod_select_period_ui <- function(id, min_year){
     
 #' select_period Server Function
 #'
-#' @importFrom shiny moduleServer observeEvent reactive updateSliderInput
+#' @importFrom shiny moduleServer observeEvent req reactive updateSliderInput
 #' @importFrom dplyr pull
 #' @noRd 
 mod_select_period_server <- function(id, raw_data){

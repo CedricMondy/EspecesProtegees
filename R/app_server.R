@@ -16,14 +16,11 @@ app_server <- function( input, output, session ) {
   departements <- mod_select_server(id = "departements")
 
   DonneesFiltrees <- reactive({
-    req(donnees)
+    req(donnees())
 
-      filter_data(
-        data         = donnees(),
-        annees       = annees(),
-        departements = departements(),
-        precisions   = NULL
-        )
+    donnees() %>% 
+      filter_years(annees()) %>% 
+      filter_departments(departements())
   })
 
   taxa <- mod_generate_treemap_server(

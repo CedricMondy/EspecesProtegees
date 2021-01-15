@@ -7,7 +7,7 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList 
-mod_select_ui <- function(id, label, placeholder, choices){
+mod_select_ui <- function(id, placeholder, choices){
   select_choices <- c("", choices)
   
   if (length(names(choices)) == 0) {
@@ -20,7 +20,7 @@ mod_select_ui <- function(id, label, placeholder, choices){
   tagList(
     selectInput(
       inputId = ns("select"),
-      label = label,
+      label = "",
       choices = select_choices,
       selected = "",
       multiple = TRUE

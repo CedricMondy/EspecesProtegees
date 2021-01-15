@@ -1,21 +1,24 @@
 #' @importFrom dplyr filter
-filter_data <- function(data, annees, departements, precisions) {
-    data %>% 
-        (function(df) {
-            if (all(!is.null(annees)))
-                df <- df %>% 
-                    filter( annee >= annees[1] & annee <= annees[2] )
-            
-            if (!is.null(departements))
-                df <- df %>% 
-                    filter(departement %in% departements)
-            
-            if (!is.null(precisions))
-                df <- df %>% 
-                    filter(niveau_precision_localisation %in% precisions)
-            
-            df
-        })
+filter_years <- function(data, years) {
+    df <- data
+    
+    if (all(!is.null(years)))
+        df <- df %>% 
+            filter(
+                annee >= years[[1]] & annee <= years[[2]]
+            )
+    
+    df
+}
+
+filter_departments <- function(data, departments) {
+    df <- data
+    
+    if (all(!is.null(departments)))
+        df <- df %>% 
+            filter(departement %in% departements)
+    
+    df
 }
 
 filter_limits <- function(data, limits) {
