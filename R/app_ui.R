@@ -3,7 +3,7 @@
 #' @param request Internal parameter for `{shiny}`. 
 #'     DO NOT REMOVE.
 #' @import shiny
-#' @importFrom shiny.semantic semanticPage sidebar_layout sidebar_panel main_panel tabset grid grid_template 
+#' @importFrom shiny.semantic semanticPage sidebar_layout sidebar_panel main_panel tabset grid grid_template segment
 #' @importFrom shinybusy add_busy_spinner
 #' @noRd
 app_ui <- function(request) {
@@ -13,7 +13,7 @@ app_ui <- function(request) {
         c("map", "treemap"),
         c("redlist", "redlist")
       ),
-      rows_height = c("auto", "200px"),
+      rows_height = c("auto", "225px"),
       cols_width = c("50%", "50%")
     )
   )
@@ -78,7 +78,8 @@ app_ui <- function(request) {
                   gridLayout,
                   map = mod_generate_map_ui(id = "carte"),
                   treemap = mod_generate_treemap_ui(id = "treemap"),
-                  redlist = mod_generate_redlists_ui(id = "redlist")
+                  redlist = segment(mod_generate_redlists_ui(id = "redlist"),
+                                    style = "height:190px; padding:0;margin:5px")
                   )
                 ),
                 list(
