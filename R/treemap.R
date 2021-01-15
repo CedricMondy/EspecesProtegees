@@ -28,7 +28,7 @@ prepare_treemap_data <- function(data) {
         })
 }
 
-#' @importFrom plotly plot_ly layout
+#' @importFrom plotly plot_ly layout config
 #' @importFrom dplyr rowwise mutate
 generate_treemap <- function(data, ...) {
     
@@ -61,7 +61,9 @@ generate_treemap <- function(data, ...) {
                 t = 20,
                 pad = 0
             )
-        )
+        ) %>%
+        config(displayModeBar = FALSE) %>%
+        config(showLink = FALSE)
     
 }
 

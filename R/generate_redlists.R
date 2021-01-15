@@ -3,7 +3,7 @@
 #' @importFrom glue glue
 #' @importFrom purrr map set_names
 #' @importFrom htmltools HTML
-#' @importFrom plotly plot_ly add_pie layout
+#' @importFrom plotly plot_ly add_pie layout config
 #' @importFrom stringr str_wrap str_remove str_to_sentence
 generate_redlists <- function(data) {
 
@@ -104,7 +104,9 @@ generate_redlists <- function(data) {
                                 b = 10, t = 10,
                                 pad = 4
                             )
-                        ) 
+                        ) %>%
+                        config(displayModeBar = FALSE) %>%
+                        config(showLink = FALSE)
                 }
             ) %>% 
             set_names(c("world", "continent", "country", "region")) 
