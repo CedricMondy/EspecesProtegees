@@ -65,6 +65,11 @@ app_server <- function( input, output, session ) {
     donnees = DonneesVisibles
   )
   
+  mod_generate_keyindicators_server(
+    id = "numbers",
+    donnees = DonneesVisibles
+  )
+  
   mod_generate_redlists_server(
     id = "redlist",
     donnees = DonneesVisibles

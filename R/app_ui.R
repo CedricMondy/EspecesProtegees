@@ -10,11 +10,11 @@ app_ui <- function(request) {
   gridLayout <- grid_template(
     default = list(
       areas = rbind(
-        c("map", "treemap"),
-        c("redlist", "redlist")
+        c("map", "map", "treemap"),
+        c("numbers", "redlist", "redlist")
       ),
       rows_height = c("auto", "225px"),
-      cols_width = c("50%", "50%")
+      cols_width = c("17%", "33%", "50%")
     )
   )
   
@@ -82,8 +82,12 @@ app_ui <- function(request) {
                   gridLayout,
                   map = mod_generate_map_ui(id = "carte"),
                   treemap = mod_generate_treemap_ui(id = "treemap"),
+                  numbers = tagList(
+                    br(),
+                    mod_generate_keyindicators_ui(id = "numbers")
+                    ),
                   redlist = segment(mod_generate_redlists_ui(id = "redlist"),
-                                    style = "height:190px; padding:0;margin:5px")
+                                    style = "height:195px; padding:0;margin:5px")
                   )
                 ),
                 list(
