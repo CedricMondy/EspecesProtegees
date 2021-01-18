@@ -60,7 +60,10 @@ generate_redlists <- function(data) {
                 ) ~ "#68228B",
                 statut == "Eteinte au niveau mondial" ~ "#000000"
             ),
-            labs = glue("<b>{conservation}</b><br>{statut}: {n} espèces") %>% 
+            nombre_especes = glue("{statut}: {n} espèces") %>% 
+                str_wrap(width = 25) %>% 
+                str_replace_all(pattern = "\n", replacement = "<br>"),
+            labs = glue("<b>{conservation}</b><br>{nombre_especes}") %>% 
                 map(HTML)
             ) %>% 
             arrange(conservation, desc(statut))
