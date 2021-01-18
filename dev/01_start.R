@@ -46,8 +46,8 @@ golem::use_recommended_deps()
 
 ## Favicon ----
 # If you want to change the favicon (default is golem's one)
-# golem::remove_favicon()
-# golem::use_favicon() # path = "path/to/ico". Can be an online file. 
+golem::remove_favicon()
+golem::use_favicon("https://ofb.gouv.fr/themes/afb/favicon.png") # path = "path/to/ico". Can be an online file.
 
 ## Add helper functions ----
 golem::use_utils_ui()
