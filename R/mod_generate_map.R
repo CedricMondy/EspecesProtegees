@@ -34,24 +34,31 @@ mod_generate_map_server <- function(id, donnees, taxa){
       output$map <- renderLeaflet(generate_map() )
       
       observe({
+        req(donnees())
+        
+        update_map_scale("map", data = donnees())
+        
+      })
+      
+      observe({
         req(donnees, taxa)
         
-        data_map <- filter_taxa(data = donnees(), taxa = taxa())
+        data_map <- filter_taxa(data = donnees(), 
+                                taxa = taxa())
         
         update_map("map", data = data_map)
         
-         observeEvent(input$richness, {
-           if (input$richness) {
-             add_hexagons("map", data_map)
-          
-        } else {
-          clear_hexagons("map")
-        }
-      })
-      })
+        observeEvent(input$richness, {
+          if (input$richness) {
+            add_hexagons("map", data_map)
+            } else {
+              clear_hexagons("map")
+              }
+          })
+        })
       
       reactive(input$map_bounds)
     }
   )
-}
+  }
    
