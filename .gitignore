@@ -40,3 +40,7 @@ man/
 
 # raw data
 dev/rawdata/
+rsconnect/shinyapps.io/cedricmondy/
+
+# test files
+dev/test/

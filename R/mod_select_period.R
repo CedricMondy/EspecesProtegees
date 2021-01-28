@@ -33,7 +33,8 @@ mod_select_period_server <- function(id, raw_data){
     function(input, output, session){
       observeEvent(raw_data(),
                    {
-                     min_year <- min(pull(raw_data(), annee))
+                     if (nrow(raw_data()) > 0) {
+                       min_year <- min(pull(raw_data(), annee))
                      max_year <- max(pull(raw_data(), annee))
       
       updateSliderInput(
@@ -44,7 +45,9 @@ mod_select_period_server <- function(id, raw_data){
                        max = max_year
                      )
       
-      })
+                     }
+                   }
+      )
       
       reactive(input$year)
       
