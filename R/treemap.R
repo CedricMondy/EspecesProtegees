@@ -4,7 +4,7 @@
 prepare_treemap_data <- function(data) {
     data %>% 
         ungroup() %>% 
-        count(ordre, color, espece, nom_vernaculaire) %>% 
+        count(ordre, colorOrdre, espece, nom_vernaculaire, color) %>% 
         (function(df) {
             bind_rows(
                 df %>% 
@@ -16,14 +16,14 @@ prepare_treemap_data <- function(data) {
                         color = color
                     ),
                 df %>% 
-                    group_by(ordre, color) %>% 
+                    group_by(ordre, colorOrdre) %>% 
                     summarise(n = sum(n),
                               .groups = "drop") %>% 
                     transmute(labels = ordre,
                               parents = "&#8617; Retour à la vue initiale",
                               ids = ordre,
                               values = n,
-                              color = color)
+                              color = colorOrdre)
             )
         })
 }

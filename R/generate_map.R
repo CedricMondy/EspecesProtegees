@@ -72,13 +72,14 @@ generate_map <- function() {
 #' @importFrom stringr str_replace_all
 update_map <- function(mapId, data) {
     if (nrow(data) > 0) {
-        orderColors <- data %>% 
+
+        speciesColors <- data %>% 
             ungroup() %>% 
-            distinct(ordre, color)
+            distinct(espece, color)
         
-        palOrderColor <- colorFactor(
-            palette = orderColors$color,
-            levels = orderColors$ordre
+        palSpColor <- colorFactor(
+            palette = speciesColors$color,
+            levels = speciesColors$espece
         )
         
         data <- data %>% 
@@ -103,7 +104,7 @@ update_map <- function(mapId, data) {
                     x %>% 
                         addCircleMarkers(
                             data = inpn_to_sf(data_zones),
-                            fillColor = palOrderColor(data_zones$ordre),
+                            fillColor = palSpColor(data_zones$espece),
                             fillOpacity = 1,
                             radius = 8,
                             stroke = FALSE,
@@ -119,7 +120,7 @@ update_map <- function(mapId, data) {
                     x %>% 
                         addCircleMarkers(
                             data = inpn_to_sf(data_points),
-                            fillColor = palOrderColor(data_points$ordre),
+                            fillColor = palSpColor(data_points$espece),
                             fillOpacity = 1,
                             radius = 5,
                             stroke = TRUE,

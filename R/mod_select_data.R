@@ -6,7 +6,7 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList selectInput div uiOutput
+#' @importFrom shiny NS tagList selectInput
 mod_select_data_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -28,11 +28,12 @@ mod_select_data_ui <- function(id){
     
 #' choose_data Server Function
 #'
-#' @importFrom shiny reactive req moduleServer renderUI downloadButton downloadHandler
+#' @noRd 
+#' @importFrom tinter tinter
+#' @importFrom dplyr mutate distinct group_by n_distinct select left_join
 #' @importFrom leaflet colorFactor
 #' @importFrom paletteer paletteer_d
-#' @importFrom dplyr mutate
-#' @noRd 
+#' @importFrom shiny moduleServer reactive req renderUI downloadButton
 mod_select_data_server <- function(id){
   moduleServer(
     id,
@@ -76,11 +77,30 @@ mod_select_data_server <- function(id){
         palOrdre <- colorFactor(
           palette = paletteer_d("RColorBrewer::Dark2") %>% 
             as.character(),
-          domain = raw_data$ordre
+          domain = unique(raw_data$ordre)
           )
         
-        raw_data %>% 
-          mutate(color = palOrdre(ordre))
+        data <- raw_data %>% 
+          mutate(colorOrdre = palOrdre(ordre)) 
+        
+        colorSpecies <- distinct(data, ordre, espece, colorOrdre) %>% 
+            group_by(ordre) %>%
+          group_split() %>% 
+          purrr::map_df(function(df) {
+            df %>% 
+              mutate(
+                color = tinter(
+                x = unique(df$colorOrdre),
+                direction = "tints",
+                steps = 2 * n_distinct(df$espece),
+                crop = 2
+                ) %>% 
+                  sample(n_distinct(df$espece))
+              )
+          }) 
+        
+        data %>% 
+          left_join(colorSpecies, by = c("ordre", "colorOrdre", "espece"))
         })
       }
   )

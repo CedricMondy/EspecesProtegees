@@ -35,6 +35,7 @@ usethis::use_package( "shinybusy" )
 usethis::use_package( "stringr" )
 usethis::use_package( "purrr" )
 usethis::use_package( "tidyr" )
+usethis::use_package( "tinter" )
 
 ## Add modules ----
 ## Create a module infrastructure in R/
