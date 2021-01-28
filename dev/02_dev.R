@@ -48,6 +48,7 @@ golem::add_module( name = "generate_observationlist")
 golem::add_module( name = "generate_redlists" )
 golem::add_module( name = "generate_chronic" )
 golem::add_module( name = "generate_keyindicators" )
+golem::add_module( name = "search_taxon" )
 
 ## Add helper functions ----
 ## Creates ftc_* and utils_*

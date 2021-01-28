@@ -8,17 +8,22 @@ app_server <- function( input, output, session ) {
   # List the first level callModules here
   donnees <- mod_select_data_server(id = "donnees")
   
+  donnees_taxon <- mod_search_taxon_server(
+    id = "recherche_taxon",
+    data = donnees
+  )
+  
   annees <- mod_select_period_server(
     id = "periode",
-    raw_data = donnees
+    raw_data = donnees_taxon
   )
   
   departements <- mod_select_server(id = "departements")
 
   DonneesFiltrees <- reactive({
-    req(donnees())
+    req(donnees_taxon())
 
-    donnees() %>% 
+    donnees_taxon() %>% 
       filter_years(annees()) %>% 
       filter_departments(departements())
   })
@@ -36,9 +41,9 @@ app_server <- function( input, output, session ) {
   )
   
   DonneesChronique <- reactive({
-      req(donnees, departements, limites, taxa)
+      req(donnees_taxon, departements, limites, taxa)
       
-      donnees() %>% 
+    donnees_taxon() %>% 
         filter_departments(departements()) %>% 
         filter_limits(limites()) %>% 
         filter_taxa(taxa())

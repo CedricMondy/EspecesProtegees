@@ -56,6 +56,7 @@ app_ui <- function(request) {
           sidebar_panel(
             h3("Groupe taxonomique"),
             mod_select_data_ui(id = "donnees"),
+            mod_search_taxon_ui(id = "recherche_taxon"),
             h3("Années"),
             mod_select_period_ui(id = "periode",
                                  min_year = min(birds$annee),
