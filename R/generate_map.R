@@ -8,10 +8,9 @@ inpn_to_sf <- function(inpn) {
         )
 }
 
-#' @importFrom sf st_bbox
-#' @importFrom dplyr distinct ungroup
 #' @importFrom leaflet leaflet leafletOptions addProviderTiles providerTileOptions addScaleBar addLayersControl fitBounds
-#' @importFrom leaflet.extras addResetMapButton addSearchOSM searchOptions 
+#' @importFrom leaflet.extras addResetMapButton addSearchOSM searchOptions
+#' @importFrom sf st_bbox
 generate_map <- function() {
     
     bbox <- birds %>% 
@@ -66,12 +65,11 @@ generate_map <- function() {
     
 }
 
-#' @importFrom dplyr distinct ungroup
-#' @importFrom leaflet colorFactor leafletProxy clearShapes clearControls addLayersControl clearMarkers addCircleMarkers
+#' @importFrom dplyr ungroup distinct mutate filter
 #' @importFrom glue glue
-#' @importFrom htmltools HTML
+#' @importFrom leaflet colorFactor leafletProxy clearMarkers clearShapes clearControls addCircleMarkers addLayersControl
 #' @importFrom purrr map
-#' @importFrom stringr str_wrap str_replace_all
+#' @importFrom stringr str_replace_all
 update_map <- function(mapId, data) {
     orderColors <- data %>% 
         ungroup() %>% 
@@ -140,4 +138,79 @@ update_map <- function(mapId, data) {
             "Observations"
         ),
         position = "topright") 
+}
+
+#' @importFrom dplyr n_distinct tibble count arrange desc pull mutate n group_by summarise
+#' @importFrom glue glue
+#' @importFrom leaflet colorNumeric leafletProxy clearShapes clearControls addLayersControl addPolygons popupOptions
+#' @importFrom sf st_transform st_make_grid st_as_sf st_join
+add_hexagons <- function(mapId, data) {
+    if (nrow(data) > 0) {
+        palRich <- colorNumeric(
+            palette = "viridis",
+            domain = c(0, n_distinct(data$espece)),
+            reverse = TRUE
+        )
+        
+        format_species_list <- function(species) {
+            tibble(sp = species) %>% 
+                count(sp) %>% 
+                arrange(desc(n)) %>% 
+                pull(sp) %>% 
+                as.character() %>% 
+                (function(x) {
+                    glue("<i>{x}</i>") %>% 
+                        paste(collapse = "<br>")
+                })
+        }
+        
+        hexagons <- inpn_to_sf(data) %>% 
+            st_transform(crs = 2154) %>% 
+            st_make_grid(
+                cellsize = 10000,
+                square = FALSE
+            ) %>% 
+            st_as_sf() %>% 
+            mutate(hexids = seq(n())) %>% 
+            st_join(st_transform(inpn_to_sf(data), crs = 2154)) %>% 
+            st_transform(crs = 4326) %>% 
+            group_by(hexids) %>% 
+            summarise(S = n_distinct(espece),
+                      species = format_species_list(espece),
+                      .groups = "drop")
+        
+        leafletProxy(mapId, data = inpn_to_sf(data)) %>%
+            clearShapes() %>%
+            clearControls() %>% 
+            addLayersControl(baseGroups = c(
+                "OSM", "IGN", "Orthophotos", "Parcelles"
+            ),
+            overlayGroups = c(
+                "Observations", "Richesse"
+            ),
+            position = "topright") %>% 
+            addPolygons(data = hexagons,
+                        fillColor = ~palRich(S),
+                        fillOpacity = .75,
+                        stroke = FALSE,
+                        label = ~glue("{S} espèces"),
+                        popup = ~species,
+                        group = "Richesse",
+                        options = popupOptions(className = "speciesPopup",
+                                               closeButton = FALSE))
+    }
+    
+}
+
+#' @importFrom leaflet leafletProxy clearShapes clearControls addLayersControl
+clear_hexagons <- function(mapId) {
+    leafletProxy(mapId) %>% 
+        clearShapes() %>% 
+        clearControls() %>% 
+        addLayersControl(baseGroups = c(
+            "OSM", "IGN", "Orthophotos", "Parcelles"
+        ),
+        overlayGroups = c(
+            "Observations"
+        ))
 }
