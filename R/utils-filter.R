@@ -16,7 +16,7 @@ filter_departments <- function(data, departments) {
     
     if (all(!is.null(departments)))
         df <- df %>% 
-            filter(departement %in% departements)
+            filter(departement %in% departments)
     
     df
 }
