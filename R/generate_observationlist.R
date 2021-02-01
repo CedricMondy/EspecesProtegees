@@ -9,7 +9,7 @@ generate_observationlist <- function(data) {
             `Date` = date_debut,
             `Commune` = commune,
             `Département` = departement,
-            `Précision géographique` = niveau_precision_localisation,
+            `Précision géographique` = precision,
             `Longitude` = longitude,
             `Latitude` = latitude,
             `Observateur (structure)` = observateur,

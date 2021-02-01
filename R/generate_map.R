@@ -1,3 +1,12 @@
+
+#' Title
+#'
+#' @param inpn 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 #' @importFrom sf st_as_sf
 inpn_to_sf <- function(inpn) {
     inpn %>% 
@@ -84,15 +93,15 @@ update_map <- function(mapId, data) {
         
         data <- data %>% 
             mutate(
-                labs = glue("<b><i>{espece}</i></b><br><b>{ifelse(!is.na(nom_vernaculaire), paste0('(', str_wrap(nom_vernaculaire, width = 40), ')'), '')}</b><br>{ifelse(!is.na(commune), commune, '')} ({departement})<br>{date_debut}<br><i>({str_wrap(libelle_jeu_donnees, width = 40)})</i><br><small>{niveau_precision_localisation}</small>") %>% 
+                labs = glue("<b><i>{espece}</i></b><br><b>{ifelse(!is.na(nom_vernaculaire), paste0('(', str_wrap(nom_vernaculaire, width = 40), ')'), '')}</b><br>{ifelse(!is.na(commune), commune, '')} ({departement})<br>{date_debut}<br><i>({str_wrap(libelle_jeu_donnees, width = 40)})</i><br><small>{precision}</small>") %>% 
                     str_replace_all(pattern = "\n", replacement = "<br>") %>% 
                     map(HTML)
             )
         data_points <- data %>% 
-            filter(niveau_precision_localisation == "XY point") 
+            filter(precision == "point") 
         
         data_zones <- data %>% 
-            filter(niveau_precision_localisation != "XY point")
+            filter(precision != "point")
         
         
         leafletProxy(mapId) %>% 
