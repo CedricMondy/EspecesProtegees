@@ -106,9 +106,6 @@ protections <- preparer_protection(
 
 fiches_ofb <- preparer_fiches(fiches_ofb, taxref)
 
-## Grille hexagonale ----
-grille_5km <- preparer_grille(LimitesRegion, 5000)
-
 ## INSECTS
 insects <- observations %>%
     preparer_observations(

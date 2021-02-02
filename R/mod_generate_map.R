@@ -50,9 +50,9 @@ mod_generate_map_server <- function(id, donnees, taxa){
         
         observeEvent(input$richness, {
           if (input$richness) {
-            add_hexagons("map", data_map)
+            add_grid("map", data_map)
             } else {
-              clear_hexagons("map")
+              clear_grid("map")
               }
           })
         })

@@ -17,6 +17,18 @@ inpn_to_sf <- function(inpn) {
         )
 }
 
+format_species_list <- function(species) {
+    tibble(sp = species) %>% 
+        count(sp) %>% 
+        arrange(desc(n)) %>% 
+        pull(sp) %>% 
+        as.character() %>% 
+        (function(x) {
+            glue("<i>{x}</i>") %>% 
+                paste(collapse = "<br>")
+        })
+}
+
 #' @importFrom leaflet leaflet leafletOptions addProviderTiles providerTileOptions addScaleBar addLayersControl fitBounds
 #' @importFrom leaflet.extras addResetMapButton addSearchOSM searchOptions
 #' @importFrom sf st_bbox
@@ -88,11 +100,13 @@ update_map <- function(mapId, data) {
                 rowwise() %>% 
                 mutate(espece = paste0("<i>", espece, "</i>")) %>% 
                 group_by(precision, ID, departement, commune) %>% 
-                summarise(especes = ifelse(length(espece) > 10, paste(c(espece[seq(9)], '...'), collapse = ',<br>'),paste(espece, collapse = ',<br>')),
+                summarise(S = n_distinct(espece),
+                          especes = format_species_list(espece),
                           .groups = "drop") %>% 
-                mutate(labs = glue("<b>{ifelse(!is.na(commune), commune, '')} ({departement})</b><br><small>{precision}</small><br>{especes}") %>% 
-                              map(HTML)) %>% 
-                select(ID, labs),
+                mutate(labs = glue("<b>{ifelse(!is.na(commune), commune, '')} ({departement})</b><br><small>{precision}</small><br>{ifelse(S == 1, especes, paste0('<b>', S, ' espèces</b> (cliquer pour les afficher)'))}") %>% 
+                              map(HTML),
+                       popups = especes) %>% 
+                select(ID, labs, popups),
             by = "ID"
         ) 
     }
@@ -145,6 +159,7 @@ update_map <- function(mapId, data) {
                             opacity = 1,
                             weight = 1,
                             label = ~labs,
+                            popup = ~popups,
                             group = "Mailles"
                         )  
                 }
@@ -160,6 +175,7 @@ update_map <- function(mapId, data) {
                             color = "black",
                             opacity = 1,
                             label = ~labs,
+                            popup = ~popups,
                             group = "Communes"
                         )  
                 }
@@ -211,7 +227,7 @@ update_map_scale <- function(mapId, data) {
 #' @importFrom glue glue
 #' @importFrom leaflet colorNumeric leafletProxy clearShapes clearControls clearGroup addLayersControl addPolygons popupOptions
 #' @importFrom sf st_transform st_make_grid st_as_sf st_join
-add_hexagons <- function(mapId, data) {
+add_grid <- function(mapId, data) {
     if (nrow(data) > 0) {
         palRich <- colorNumeric(
             palette = "viridis",
@@ -219,29 +235,36 @@ add_hexagons <- function(mapId, data) {
             reverse = TRUE
         )
         
-        format_species_list <- function(species) {
-            tibble(sp = species) %>% 
-                count(sp) %>% 
-                arrange(desc(n)) %>% 
-                pull(sp) %>% 
-                as.character() %>% 
-                (function(x) {
-                    glue("<i>{x}</i>") %>% 
-                        paste(collapse = "<br>")
-                })
-        }
+        grilleL93 <- st_transform(GrilleINPN, crs = 2154) %>% 
+                                    select(maille = ID)
         
-        hexagons <- inpn_to_sf(data) %>% 
-            st_transform(crs = 2154) %>% 
-            st_make_grid(
-                cellsize = 10000,
-                square = FALSE
-            ) %>% 
-            st_as_sf() %>% 
-            mutate(hexids = seq(n())) %>% 
-            st_join(st_transform(inpn_to_sf(data), crs = 2154)) %>% 
+        cells <- data %>% 
+            (function(df) {
+                bind_rows(
+                    df %>% 
+                        filter(precision %in% c("point", "ligne/polygone")) %>% 
+                        inpn_to_sf() %>% 
+                        distinct(espece) %>% 
+                        st_transform(crs = 2154) %>% 
+                        st_join(grilleL93, .),
+                    df %>% 
+                        filter(precision %in% c("commune")) %>% 
+                        distinct(ID, espece) %>% 
+                        left_join(LimitesCommunes, ., by = "ID") %>%
+                        filter(!is.na(espece)) %>% 
+                        select(-ID) %>% 
+                        st_transform(crs = 2154) %>% 
+                        st_join(grilleL93, .),
+                    df %>% 
+                        filter(precision %in% c("maille")) %>% 
+                        left_join(grilleL93, ., by = c("maille" = "ID")) %>% 
+                        filter(!is.na(espece)) %>% 
+                        distinct(maille, espece)
+                )
+            }) %>%  
+            filter(!is.na(espece)) %>% 
             st_transform(crs = 4326) %>% 
-            group_by(hexids) %>% 
+            group_by(maille) %>% 
             summarise(S = n_distinct(espece),
                       species = format_species_list(espece),
                       .groups = "drop")
@@ -256,11 +279,11 @@ add_hexagons <- function(mapId, data) {
                 "Mailles", "Communes", "Points", "Richesse"
             ),
             position = "topright") %>% 
-            addPolygons(data = hexagons,
+            addPolygons(data = cells,
                         fillColor = ~palRich(S),
                         fillOpacity = .75,
                         stroke = FALSE,
-                        label = ~glue("{S} espèces"),
+                        label = ~glue("<b>{S} espèces</b>: cliquer pour les afficher") %>% map(HTML),
                         popup = ~species,
                         group = "Richesse",
                         options = popupOptions(className = "speciesPopup",
@@ -270,7 +293,7 @@ add_hexagons <- function(mapId, data) {
 }
 
 #' @importFrom leaflet leafletProxy clearShapes clearControls addLayersControl
-clear_hexagons <- function(mapId) {
+clear_grid <- function(mapId) {
     leafletProxy(mapId) %>% 
         clearGroup(group = "Richesse") %>%
         clearControls() %>% 
