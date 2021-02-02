@@ -3,8 +3,14 @@
 #' @param input,output,session Internal parameters for {shiny}. 
 #'     DO NOT REMOVE.
 #' @import shiny
+#' @importFrom sf st_set_crs
 #' @noRd
 app_server <- function( input, output, session ) {
+  LimitesCommunes <- EspecesProtegees:::LimitesCommunes %>% 
+    st_set_crs(4326)
+  GrilleINPN <- EspecesProtegees:::GrilleINPN %>% 
+    st_set_crs(4326)
+  
   # List the first level callModules here
   donnees <- mod_select_data_server(id = "donnees")
   
@@ -39,13 +45,17 @@ app_server <- function( input, output, session ) {
     id = "treemap",
     donnees = ResumeDonneesFiltrees,
     limites = limites,
+    limites_communes = LimitesCommunes,
+    grille_inpn = GrilleINPN,
     titre = "Nombre de localisations"
   )
 
   limites <- mod_generate_map_server(
     id = "carte",
     donnees = ResumeDonneesFiltrees,
-    taxa = taxa
+    taxa = taxa,
+    limites_communes = LimitesCommunes,
+    grille_inpn = GrilleINPN
   )
   
   DonneesChronique <- reactive({
@@ -53,7 +63,11 @@ app_server <- function( input, output, session ) {
       
     donnees_taxon() %>% 
         filter_departments(departements()) %>% 
-        filter_limits(limites()) %>% 
+        filter_limits(
+          limites(), 
+          limites_communes = LimitesCommunes, 
+          grille_inpn = GrilleINPN
+          ) %>% 
         filter_taxa(taxa())
     })
   
@@ -64,7 +78,12 @@ app_server <- function( input, output, session ) {
   
   DonneesVisibles <- reactive({
     DonneesFiltrees() %>% 
-      filter_limits(limites()) %>% 
+      filter_limits(
+        limites(), 
+        limites_communes = LimitesCommunes, 
+        grille_inpn = GrilleINPN
+        
+        ) %>% 
       filter_taxa(taxa())
   })
   

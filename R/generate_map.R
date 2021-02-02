@@ -92,8 +92,10 @@ generate_map <- function() {
 #' @importFrom glue glue
 #' @importFrom leaflet colorFactor leafletProxy clearMarkers clearShapes clearControls addPolygons addCircleMarkers addLayersControl
 #' @importFrom purrr map
-#' @importFrom stringr str_replace_all
-update_map <- function(mapId, data) {
+#' @importFrom stringr str_replace_all str_wrap
+#' @importFrom sf st_transform st_set_crs
+update_map <- function(mapId, data, limites_communes, grille_inpn) {
+
     prepare_polygons <- function(data, polygons, type) {
         inner_join(
             polygons,
@@ -135,13 +137,13 @@ update_map <- function(mapId, data) {
         
         data_communes <- prepare_polygons(
             data = data,
-            polygons = LimitesCommunes,
+            polygons = limites_communes,
             type = "commune"
         )
         
         data_mailles <- prepare_polygons(
             data = data,
-            polygons = GrilleINPN,
+            polygons = grille_inpn,
             type = "maille"
         )
         
@@ -230,7 +232,8 @@ update_map_scale <- function(mapId, data) {
 #' @importFrom leaflet colorNumeric leafletProxy clearGroup clearControls addLayersControl addPolygons popupOptions
 #' @importFrom purrr map
 #' @importFrom sf st_transform st_join
-add_grid <- function(mapId, data) {
+add_grid <- function(mapId, data, limites_communes, grille_inpn) {
+
     if (nrow(data) > 0) {
         palRich <- colorNumeric(
             palette = "viridis",
@@ -238,8 +241,8 @@ add_grid <- function(mapId, data) {
             reverse = TRUE
         )
         
-        grilleL93 <- st_transform(GrilleINPN, crs = 2154) %>% 
-                                    select(maille = ID)
+        grilleL93 <- st_transform(grille_inpn, crs = 2154) %>% 
+            select(maille = ID)
         
         cells <- data %>% 
             (function(df) {
@@ -253,7 +256,7 @@ add_grid <- function(mapId, data) {
                     df %>% 
                         filter(precision %in% c("commune")) %>% 
                         distinct(ID, espece) %>% 
-                        left_join(LimitesCommunes, ., by = "ID") %>%
+                        left_join(limites_communes, ., by = "ID") %>%
                         filter(!is.na(espece)) %>% 
                         select(-ID) %>% 
                         st_transform(crs = 2154) %>% 

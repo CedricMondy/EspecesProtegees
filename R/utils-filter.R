@@ -24,7 +24,7 @@ filter_departments <- function(data, departments) {
 
 #' @importFrom dplyr pull filter
 #' @importFrom sf st_transform st_intersection st_bbox st_as_sfc
-filter_limits <- function(data, limits) {
+filter_limits <- function(data, limits, limites_communes, grille_inpn) {
     extract_polygon_ids <- function(polygons, bbox) {
         polygons %>% 
             st_transform(crs = 2154) %>% 
@@ -41,8 +41,8 @@ filter_limits <- function(data, limits) {
             st_as_sfc() %>% 
             st_transform(crs = 2154)
         
-        communes <- extract_polygon_ids(LimitesCommunes, bbox)
-        mailles <- extract_polygon_ids(GrilleINPN, bbox)
+        communes <- extract_polygon_ids(limites_communes, bbox)
+        mailles <- extract_polygon_ids(grille_inpn, bbox)
         
         data %>% 
             filter(

@@ -21,7 +21,7 @@ mod_generate_treemap_ui <- function(id){
 #' 
 #' @import shiny
 #' @importFrom plotly renderPlotly layout event_data
-mod_generate_treemap_server <- function(id, donnees, limites, titre = ""){
+mod_generate_treemap_server <- function(id, donnees, limites, limites_communes, grille_inpn, titre = ""){
   moduleServer(
     id,
     function(input, output, session){
@@ -32,7 +32,11 @@ mod_generate_treemap_server <- function(id, donnees, limites, titre = ""){
         
         output$treemap <- renderPlotly({
           donnees() %>% 
-            filter_limits(limits = limites()) %>% 
+            filter_limits(
+              limits = limites(),
+              limites_communes = limites_communes,
+              grille_inpn = grille_inpn
+              ) %>% 
             prepare_treemap_data() %>% 
             generate_treemap(source = "treemap") %>% 
             layout(title = list(
