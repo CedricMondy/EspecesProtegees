@@ -15,7 +15,7 @@ allouer_polygones <- function(df, limites_communes, grille_inpn) {
     bind_rows(
         df %>% 
             filter(precision %in% c("point", "ligne/polygone")) %>% 
-            mutate(ID = NA_character_),
+            mutate(ID = paste0(longitude, "-", latitude)),
         df %>% 
             filter(precision == "commune") %>% 
             inpn_to_sf() %>% 

@@ -11,6 +11,7 @@ library(EspecesProtegees)
 import::from(here, here)
 import::from(vroom, vroom)
 import::from(dplyr, `%>%`, mutate, case_when)
+import::from(sf, st_transform)
 import::from(usethis, use_data)
 
 # DATA IMPORT--------------------------------------------------------------
@@ -182,6 +183,11 @@ molluscs <- observations %>%
         limites_communes = LimitesCommunes,
         grille_inpn = GrilleINPN
     )
+
+LimitesCommunes <- LimitesCommunes %>% 
+    st_transform(crs = 4326)
+GrilleINPN <- GrilleINPN %>% 
+    st_transform(crs = 4326)
 
 # DATA EXPORT -------------------------------------------------------------
 

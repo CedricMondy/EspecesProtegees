@@ -22,18 +22,38 @@ filter_departments <- function(data, departments) {
 }
 
 filter_limits <- function(data, limits) {
-    df <- data
+    extract_polygon_ids <- function(polygons, bbox) {
+        polygons %>% 
+            sf::st_transform(crs = 2154) %>% 
+            sf::st_intersection(bbox) %>% 
+            dplyr::pull(ID)
+    }
     
-    if (!is.null(limits))
-        df <- df %>% 
-            filter(
-                longitude >= limits$west,
-                longitude <= limits$east,
-                latitude >= limits$south,
-                latitude <= limits$north
-                )
-    
-    df
+    if (!is.null(limits)) {
+        bbox <- sf::st_bbox(c(
+            xmin = limits$west, xmax = limits$east,
+            ymin = limits$south, ymax = limits$north
+        ),
+        crs = 4326) %>% 
+            sf::st_as_sfc() %>% 
+            sf::st_transform(crs = 2154)
+        
+        communes <- extract_polygon_ids(LimitesCommunes, bbox)
+        mailles <- extract_polygon_ids(GrilleINPN, bbox)
+        
+        data %>% 
+            dplyr::filter(
+                (precision %in% c("point", "ligne/polygone") &
+                     longitude >= limits$west &
+                     longitude <= limits$east &
+                     latitude >= limits$south &
+                     latitude <= limits$north) |
+                    (precision %in% c("commune", "maille") & 
+                         ID %in% c(communes, mailles))
+            )
+    } else {
+        data
+    }
 }
 
 filter_taxa <- function(data, taxa) {

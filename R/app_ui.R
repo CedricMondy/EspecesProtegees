@@ -18,7 +18,7 @@ app_ui <- function(request) {
     )
   )
   
-  ChoixDepartements <- levels(birds$departement)
+  ChoixDepartements <- sort(unique(birds$departement))
   
   tagList(
     # Leave this function for adding external resources

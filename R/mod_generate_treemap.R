@@ -20,9 +20,9 @@ mod_generate_treemap_ui <- function(id){
 #' @noRd 
 #' 
 #' @importFrom shiny moduleServer observe reactive req reactiveVal observeEvent
-#' @importFrom plotly renderPlotly event_data
+#' @importFrom plotly renderPlotly event_data layout
 #' @importFrom dplyr filter
-mod_generate_treemap_server <- function(id, donnees, limites){
+mod_generate_treemap_server <- function(id, donnees, limites, titre = ""){
   moduleServer(
     id,
     function(input, output, session){
@@ -35,7 +35,14 @@ mod_generate_treemap_server <- function(id, donnees, limites){
           donnees() %>% 
             filter_limits(limits = limites()) %>% 
             prepare_treemap_data() %>% 
-            generate_treemap(source = "treemap")
+            generate_treemap(source = "treemap") %>% 
+            layout(title = list(
+              text = titre, 
+              x = 0, xanchor = "left", 
+              pad = list(t = 0, r = 0, l = 5, b = 5),
+              font = list(size = 14)
+              ),
+                   margin = list(t = 35))
         })
       })
 

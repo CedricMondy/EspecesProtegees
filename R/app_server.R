@@ -27,16 +27,24 @@ app_server <- function( input, output, session ) {
       filter_years(annees()) %>% 
       filter_departments(departements())
   })
+  
+  ResumeDonneesFiltrees <- reactive({
+    req(DonneesFiltrees())
+    
+    DonneesFiltrees() %>% 
+      summarise_map_data()
+  })
 
   taxa <- mod_generate_treemap_server(
     id = "treemap",
-    donnees = DonneesFiltrees,
-    limites = limites
+    donnees = ResumeDonneesFiltrees,
+    limites = limites,
+    titre = "Nombre de localisations"
   )
 
   limites <- mod_generate_map_server(
     id = "carte",
-    donnees = DonneesFiltrees,
+    donnees = ResumeDonneesFiltrees,
     taxa = taxa
   )
   
