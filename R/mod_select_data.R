@@ -6,7 +6,7 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList selectInput
+#' @import shiny
 mod_select_data_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -29,11 +29,12 @@ mod_select_data_ui <- function(id){
 #' choose_data Server Function
 #'
 #' @noRd 
-#' @importFrom tinter tinter
-#' @importFrom dplyr mutate distinct group_by n_distinct select left_join
+#' @import shiny
+#' @importFrom dplyr mutate distinct group_by group_split n_distinct left_join
 #' @importFrom leaflet colorFactor
 #' @importFrom paletteer paletteer_d
-#' @importFrom shiny moduleServer reactive req renderUI downloadButton
+#' @importFrom purrr map_df
+#' @importFrom tinter tinter
 mod_select_data_server <- function(id){
   moduleServer(
     id,
@@ -86,7 +87,7 @@ mod_select_data_server <- function(id){
         colorSpecies <- distinct(data, ordre, espece, colorOrdre) %>% 
             group_by(ordre) %>%
           group_split() %>% 
-          purrr::map_df(function(df) {
+          map_df(function(df) {
             df %>% 
               mutate(
                 color = tinter(

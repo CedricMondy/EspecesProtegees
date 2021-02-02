@@ -6,7 +6,7 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList uiOutput
+#' @import shiny
 #' @importFrom DT DTOutput
 mod_generate_observationlist_ui <- function(id){
   ns <- NS(id)
@@ -19,9 +19,8 @@ mod_generate_observationlist_ui <- function(id){
 #' generate_observationlist Server Function
 #'
 #' @noRd 
-#' @importFrom shiny moduleServer reactive req renderUI downloadButton downloadHandler
-#' @importFrom dplyr filter select
-#' @importFrom DT datatable renderDT
+#' @import shiny
+#' @importFrom DT renderDT datatable
 mod_generate_observationlist_server <- function(id, donnees){
   moduleServer(
     id,

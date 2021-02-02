@@ -6,7 +6,7 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList sliderInput
+#' @import shiny
 mod_select_period_ui <- function(id, min_year, max_year){
   ns <- NS(id)
   tagList(
@@ -24,9 +24,9 @@ mod_select_period_ui <- function(id, min_year, max_year){
     
 #' select_period Server Function
 #'
-#' @importFrom shiny moduleServer observeEvent req reactive updateSliderInput
-#' @importFrom dplyr pull
+#' @import shiny
 #' @noRd 
+#' @importFrom dplyr pull
 mod_select_period_server <- function(id, raw_data){
   moduleServer(
     id,

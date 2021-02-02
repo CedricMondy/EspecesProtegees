@@ -6,8 +6,7 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList fillRow
-#' @importFrom htmltools p
+#' @import shiny
 #' @importFrom plotly plotlyOutput
 mod_generate_redlists_ui <- function(id){
   ns <- NS(id)
@@ -27,7 +26,8 @@ mod_generate_redlists_ui <- function(id){
 #' generate_redlistVis Server Function
 #'
 #' @noRd 
-#' @importFrom shiny reactive req
+#' @import shiny
+#' @importFrom plotly renderPlotly
 mod_generate_redlists_server <- function(id, donnees){
   moduleServer(
     id,

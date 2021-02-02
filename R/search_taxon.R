@@ -1,4 +1,4 @@
-#' @importFrom dplyr distinct mutate arrange pull
+#' @importFrom dplyr distinct arrange mutate pull
 #' @importFrom purrr set_names
 #' @importFrom tidyr pivot_longer
 search_taxon <- function(data) {

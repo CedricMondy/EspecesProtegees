@@ -6,8 +6,8 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList htmlOutput
-#' @importFrom shiny.semantic card cards
+#' @import shiny
+#' @importFrom shiny.semantic cards card
 mod_generate_keyindicators_ui <- function(id){
   ns <- NS(id)
   
@@ -37,7 +37,7 @@ mod_generate_keyindicators_ui <- function(id){
 #' generate_keyindicators Server Function
 #'
 #' @noRd 
-#' @importFrom shiny moduleServer observe req renderText
+#' @import shiny 
 mod_generate_keyindicators_server <- function(id, donnees){
   moduleServer(
     id,

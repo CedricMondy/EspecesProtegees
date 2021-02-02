@@ -1,5 +1,4 @@
-#' @importFrom dplyr count group_by summarise arrange desc mutate select across
-
+#' @importFrom dplyr select matches count across all_of group_by summarise arrange desc mutate
 generate_taxalist <- function(data) {
     cols <- select(data,
                    ordre, famille, espece, nom_vernaculaire, 

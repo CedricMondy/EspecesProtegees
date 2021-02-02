@@ -1,10 +1,9 @@
-#' @importFrom dplyr select distinct mutate count case_when arrange desc group_by group_split bind_rows slice
-#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr select contains distinct mutate count case_when arrange desc group_by group_split bind_rows slice
 #' @importFrom glue glue
-#' @importFrom purrr map set_names
-#' @importFrom htmltools HTML
 #' @importFrom plotly plot_ly add_pie layout config
-#' @importFrom stringr str_wrap str_remove str_to_sentence
+#' @importFrom purrr map set_names
+#' @importFrom stringr str_wrap str_replace_all str_remove str_to_sentence
+#' @importFrom tidyr pivot_longer
 generate_redlists <- function(data) {
 
     if (nrow(data) > 0) {
@@ -95,7 +94,7 @@ generate_redlists <- function(data) {
                         add_pie(
                             hole = .6
                         ) %>% 
-                        plotly::layout(
+                        layout(
                             showlegend = FALSE,
                             annotations = list(
                                 text = glue("<b>{str_remove(unique(df2$conservation), pattern = 'Liste rouge ') %>% str_to_sentence()}") %>% 

@@ -6,9 +6,9 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList  
-#' @importFrom shiny.semantic checkbox_input
+#' @import shiny 
 #' @importFrom leaflet leafletOutput
+#' @importFrom shiny.semantic checkbox_input
 mod_generate_map_ui <- function(id){
   ns <- NS(id)
   tagList(
@@ -25,7 +25,7 @@ mod_generate_map_ui <- function(id){
 #' generate_map Server Function
 #'
 #' @noRd 
-#' @importFrom shiny moduleServer observe observeEvent req reactive
+#' @import shiny 
 #' @importFrom leaflet renderLeaflet
 mod_generate_map_server <- function(id, donnees, taxa){
   moduleServer(

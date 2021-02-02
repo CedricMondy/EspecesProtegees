@@ -6,7 +6,7 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList 
+#' @import shiny
 #' @importFrom plotly plotlyOutput
 mod_generate_chronic_ui <- function(id){
   ns <- NS(id)
@@ -20,7 +20,7 @@ mod_generate_chronic_ui <- function(id){
 #' generate_chronic Server Function
 #'
 #' @noRd 
-#' @importFrom shiny moduleServer req
+#' @import shiny
 #' @importFrom plotly renderPlotly
 mod_generate_chronic_server <- function(id, data, years){
   moduleServer(

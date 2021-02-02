@@ -9,8 +9,6 @@
 #' @examples
 #' @importFrom dplyr filter
 #' @importFrom sf st_read
-#' @importFrom dplyr filter
-#' @importFrom sf st_read
 preparer_region <- function(fichier, code_region) {
     fichier %>% 
         st_read() %>% 
@@ -27,7 +25,7 @@ preparer_region <- function(fichier, code_region) {
 #' @export
 #'
 #' @examples
-#' @importFrom dplyr filter select mutate
+#' @importFrom dplyr filter select
 #' @importFrom rmapshaper ms_simplify
 #' @importFrom sf st_read
 preparer_communes <- function(fichier_communes, code_region) {
@@ -47,7 +45,7 @@ preparer_communes <- function(fichier_communes, code_region) {
 #' @export
 #'
 #' @examples
-#' @importFrom dplyr filter select mutate
+#' @importFrom dplyr filter select
 #' @importFrom sf st_read st_join
 preparer_inpn <- function(fichier_grille_inpn, limites_region) {
     fichier_grille_inpn %>% 

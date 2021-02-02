@@ -6,7 +6,7 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList selectInput
+#' @import shiny
 mod_search_taxon_ui <- function(id){
   ns <- NS(id)
   
@@ -22,8 +22,8 @@ mod_search_taxon_ui <- function(id){
 #' search_taxon Server Function
 #'
 #' @noRd 
+#' @import shiny
 #' @importFrom dplyr filter
-#' @importFrom shiny moduleServer observeEvent updateSelectInput reactive
 mod_search_taxon_server <- function(id, data){
   moduleServer(
     id,

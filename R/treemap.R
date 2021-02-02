@@ -1,6 +1,5 @@
-#' @importFrom dplyr ungroup count bind_rows transmute group_by summarise 
+#' @importFrom dplyr ungroup count bind_rows transmute group_by summarise
 #' @importFrom glue glue
-#' @importFrom stringr str_wrap
 prepare_treemap_data <- function(data) {
     data %>% 
         ungroup() %>% 
@@ -28,8 +27,8 @@ prepare_treemap_data <- function(data) {
         })
 }
 
-#' @importFrom plotly plot_ly layout config
 #' @importFrom dplyr rowwise mutate
+#' @importFrom plotly plot_ly layout config
 generate_treemap <- function(data, ...) {
     
     data %>% 
@@ -53,7 +52,7 @@ generate_treemap <- function(data, ...) {
             branchvalues = "total",
             ...
         ) %>%
-        plotly::layout(
+        layout(
             margin = list(
                 l = 0,
                 r = 0,

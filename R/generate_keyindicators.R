@@ -1,7 +1,3 @@
-# data <- EspecesProtegees:::birds
-# import::from(magrittr, `%>%`)
-# import::from(dplyr, summarise, n_distinct, n)
-
 #' @importFrom dplyr summarise n_distinct n mutate
 #' @importFrom glue glue
 generate_keyindicators <- function(data) {

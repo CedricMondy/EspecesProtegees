@@ -3,9 +3,9 @@
 #' @param request Internal parameter for `{shiny}`. 
 #'     DO NOT REMOVE.
 #' @import shiny
-#' @importFrom shiny.semantic semanticPage sidebar_layout sidebar_panel main_panel tabset grid grid_template segment
-#' @importFrom shinybusy add_busy_spinner
 #' @noRd
+#' @importFrom shiny.semantic grid_template semanticPage sidebar_layout sidebar_panel main_panel tabset grid segment
+#' @importFrom shinybusy add_busy_spinner
 app_ui <- function(request) {
   gridLayout <- grid_template(
     default = list(
@@ -79,7 +79,7 @@ app_ui <- function(request) {
               tabs = list(
                 list(
                   menu = "Visualisation",
-                content = shiny.semantic::grid(
+                content = grid(
                   gridLayout,
                   map = mod_generate_map_ui(id = "carte"),
                   treemap = mod_generate_treemap_ui(id = "treemap"),
@@ -123,8 +123,8 @@ app_ui <- function(request) {
 #' resources inside the Shiny application. 
 #' 
 #' @import shiny
-#' @importFrom golem add_resource_path activate_js favicon bundle_resources
 #' @noRd
+#' @importFrom golem add_resource_path favicon bundle_resources
 golem_add_external_resources <- function(){
   
   add_resource_path(
@@ -138,7 +138,7 @@ golem_add_external_resources <- function(){
       app_title = 'EspecesProtegees'
     )
     # Add here other external resources
-    # for example, you can add shinyalert::useShinyalert() 
+    # for example, you can add useShinyalert() 
   )
 }
 

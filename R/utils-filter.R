@@ -11,6 +11,7 @@ filter_years <- function(data, years) {
     df
 }
 
+#' @importFrom dplyr filter
 filter_departments <- function(data, departments) {
     df <- data
     
@@ -21,28 +22,30 @@ filter_departments <- function(data, departments) {
     df
 }
 
+#' @importFrom dplyr pull filter
+#' @importFrom sf st_transform st_intersection st_bbox st_as_sfc
 filter_limits <- function(data, limits) {
     extract_polygon_ids <- function(polygons, bbox) {
         polygons %>% 
-            sf::st_transform(crs = 2154) %>% 
-            sf::st_intersection(bbox) %>% 
-            dplyr::pull(ID)
+            st_transform(crs = 2154) %>% 
+            st_intersection(bbox) %>% 
+            pull(ID)
     }
     
     if (!is.null(limits)) {
-        bbox <- sf::st_bbox(c(
+        bbox <- st_bbox(c(
             xmin = limits$west, xmax = limits$east,
             ymin = limits$south, ymax = limits$north
         ),
         crs = 4326) %>% 
-            sf::st_as_sfc() %>% 
-            sf::st_transform(crs = 2154)
+            st_as_sfc() %>% 
+            st_transform(crs = 2154)
         
         communes <- extract_polygon_ids(LimitesCommunes, bbox)
         mailles <- extract_polygon_ids(GrilleINPN, bbox)
         
         data %>% 
-            dplyr::filter(
+            filter(
                 (precision %in% c("point", "ligne/polygone") &
                      longitude >= limits$west &
                      longitude <= limits$east &
@@ -56,6 +59,7 @@ filter_limits <- function(data, limits) {
     }
 }
 
+#' @importFrom dplyr filter
 filter_taxa <- function(data, taxa) {
     df <- data
     

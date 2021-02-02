@@ -17,6 +17,8 @@ inpn_to_sf <- function(inpn) {
         )
 }
 
+#' @importFrom dplyr tibble count arrange desc pull
+#' @importFrom glue glue
 format_species_list <- function(species) {
     tibble(sp = species) %>% 
         count(sp) %>% 
@@ -86,9 +88,9 @@ generate_map <- function() {
     
 }
 
-#' @importFrom dplyr ungroup distinct mutate filter inner_join rowwise
+#' @importFrom dplyr inner_join filter rowwise mutate group_by summarise n_distinct select ungroup distinct
 #' @importFrom glue glue
-#' @importFrom leaflet colorFactor leafletProxy clearMarkers clearShapes clearControls addCircleMarkers addLayersControl
+#' @importFrom leaflet colorFactor leafletProxy clearMarkers clearShapes clearControls addPolygons addCircleMarkers addLayersControl
 #' @importFrom purrr map
 #' @importFrom stringr str_replace_all
 update_map <- function(mapId, data) {
@@ -207,8 +209,8 @@ update_map <- function(mapId, data) {
     }
 }
 
-#' @importFrom sf st_bbox
 #' @importFrom leaflet leafletProxy fitBounds
+#' @importFrom sf st_bbox
 update_map_scale <- function(mapId, data) {
     if (nrow(data) > 0) {
         bbox <- data %>% 
@@ -223,10 +225,11 @@ update_map_scale <- function(mapId, data) {
     }
 }
 
-#' @importFrom dplyr n_distinct tibble count arrange desc pull mutate n group_by summarise
+#' @importFrom dplyr n_distinct select bind_rows filter distinct left_join group_by summarise
 #' @importFrom glue glue
-#' @importFrom leaflet colorNumeric leafletProxy clearShapes clearControls clearGroup addLayersControl addPolygons popupOptions
-#' @importFrom sf st_transform st_make_grid st_as_sf st_join
+#' @importFrom leaflet colorNumeric leafletProxy clearGroup clearControls addLayersControl addPolygons popupOptions
+#' @importFrom purrr map
+#' @importFrom sf st_transform st_join
 add_grid <- function(mapId, data) {
     if (nrow(data) > 0) {
         palRich <- colorNumeric(
@@ -292,7 +295,7 @@ add_grid <- function(mapId, data) {
     
 }
 
-#' @importFrom leaflet leafletProxy clearShapes clearControls addLayersControl
+#' @importFrom leaflet leafletProxy clearGroup clearControls addLayersControl
 clear_grid <- function(mapId) {
     leafletProxy(mapId) %>% 
         clearGroup(group = "Richesse") %>%

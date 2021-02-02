@@ -1,4 +1,3 @@
-
 #' Title
 #'
 #' @param df 
@@ -15,10 +14,10 @@
 #' @importFrom tidyr pivot_wider
 preparer_uicn <- function(df, zones_administratives) {
     df %>%
-        dplyr::filter(LB_ADM_TR %in% zones_administratives) %>% 
-        janitor::clean_names() %>% 
-        dplyr::filter(regroupement_type == "Liste rouge") %>% 
-        dplyr::mutate(statut = factor(label_statut,
+        filter(LB_ADM_TR %in% zones_administratives) %>% 
+        clean_names() %>% 
+        filter(regroupement_type == "Liste rouge") %>% 
+        mutate(statut = factor(label_statut,
                                levels = c(
                                    "Non applicable",
                                    "Non évaluée",
@@ -34,28 +33,28 @@ preparer_uicn <- function(df, zones_administratives) {
                                    "Eteinte au niveau mondial"
                                ))) %>% 
         # Gère les statuts multiples pour une même espèce et une même liste
-        dplyr::mutate(annee = full_citation %>% 
-                   stringr::str_extract(pattern = "\\d{4}")) %>% 
-        dplyr::mutate(statut_num = as.numeric(statut)) %>% 
-        dplyr::group_by(lb_nom, lb_type_statut) %>% 
+        mutate(annee = full_citation %>% 
+                   str_extract(pattern = "\\d{4}")) %>% 
+        mutate(statut_num = as.numeric(statut)) %>% 
+        group_by(lb_nom, lb_type_statut) %>% 
         # ne conserve que la liste rouge la plus récente
-        dplyr::filter(annee == max(annee)) %>% 
+        filter(annee == max(annee)) %>% 
         # ne conserve que l'évaluation la plus préoccupante
-        dplyr::filter(statut_num == max(statut_num)) %>% 
-        dplyr::slice(1) %>% 
-        dplyr::ungroup() %>% 
-        dplyr::mutate(lien_uicn = glue::glue("<a href='{doc_url}' target='_blank'>{statut}</a>")) %>%
-        dplyr::distinct(lb_nom, lb_type_statut, statut, lien_uicn) %>% 
+        filter(statut_num == max(statut_num)) %>% 
+        slice(1) %>% 
+        ungroup() %>% 
+        mutate(lien_uicn = glue("<a href='{doc_url}' target='_blank'>{statut}</a>")) %>%
+        distinct(lb_nom, lb_type_statut, statut, lien_uicn) %>% 
         (function(df) {
-            tidyr::pivot_wider(
+            pivot_wider(
                 df,
                 id_cols = lb_nom,
                 names_from = lb_type_statut,
                 values_from = statut,
                 values_fill = "Non évaluée"
             ) %>% 
-                dplyr::left_join(
-                    tidyr::pivot_wider(
+                left_join(
+                    pivot_wider(
                         df,
                         id_cols = lb_nom,
                         names_from = lb_type_statut,
@@ -80,41 +79,42 @@ preparer_uicn <- function(df, zones_administratives) {
 #' @importFrom glue glue
 find_taxonomy <- function(cd_ref, taxref) {
     selection <- taxref %>% 
-        dplyr::filter(CD_NOM %in% cd_ref)
+        filter(CD_NOM %in% cd_ref)
     
-    selection_es <- dplyr::filter(selection, RANG == "ES")
-    selection_sses <- dplyr::filter(selection, RANG == "SSES")
+    selection_es <- filter(selection, RANG == "ES")
+    selection_sses <- filter(selection, RANG == "SSES")
     
     selection_sses <- selection_sses %>%
-        dplyr::select(CD_NOM, CD_SUP) %>% 
-        dplyr::left_join(taxref, by = c("CD_SUP" = "CD_NOM"))
+        select(CD_NOM, CD_SUP) %>% 
+        left_join(taxref, by = c("CD_SUP" = "CD_NOM"))
     
-    dplyr::left_join(
-        dplyr::tibble(CD_NOM = cd_ref),
-        dplyr::bind_rows(
+    left_join(
+        tibble(CD_NOM = cd_ref),
+        bind_rows(
             selection_es,
             selection_sses
         ),
         by = "CD_NOM"
     ) %>% 
-        dplyr::select(nom_vernaculaire = NOM_VERN,
+        select(nom_vernaculaire = NOM_VERN,
                espece = LB_NOM,
                famille = FAMILLE,
                ordre = ORDRE,
                classe = CLASSE,
                url_inpn = URL)  %>% 
-        dplyr::mutate(ordre = ifelse(
+        mutate(ordre = ifelse(
             famille == "Planorbidae",
             "Hygrophila",
             ordre
         ),
-        lien_inpn = glue::glue("<a href='{url_inpn}' target='_blank'>INPN</a>")
+        lien_inpn = glue("<a href='{url_inpn}' target='_blank'>INPN</a>")
         )
 }
 
 #' Title
 #'
 #' @param df 
+#' @param zones_administratives 
 #'
 #' @return
 #' @export
@@ -126,16 +126,16 @@ find_taxonomy <- function(cd_ref, taxref) {
 #' @importFrom stringr str_remove_all str_to_sentence
 preparer_protection <- function(df, zones_administratives) {
     df %>%
-        dplyr::filter(
+        filter(
             LB_ADM_TR %in% zones_administratives
         ) %>% 
-        janitor::clean_names() %>% 
-        dplyr::filter(regroupement_type == "Protection") %>% 
-        dplyr::mutate(niveau_protection = lb_type_statut %>% 
-                   stringr::str_remove_all(pattern = "Protection ") %>% 
-                   stringr::str_to_sentence()) %>% 
-        dplyr::mutate(lien_protection = glue::glue("<a href='{doc_url}' target='_blank'>{full_citation}</a>")) %>% 
-        dplyr::distinct(lb_nom, niveau_protection, lien_protection)
+        clean_names() %>% 
+        filter(regroupement_type == "Protection") %>% 
+        mutate(niveau_protection = lb_type_statut %>% 
+                   str_remove_all(pattern = "Protection ") %>% 
+                   str_to_sentence()) %>% 
+        mutate(lien_protection = glue("<a href='{doc_url}' target='_blank'>{full_citation}</a>")) %>% 
+        distinct(lb_nom, niveau_protection, lien_protection)
 }
 
 #' Title
@@ -151,12 +151,12 @@ preparer_protection <- function(df, zones_administratives) {
 #' @importFrom glue glue
 preparer_fiches <- function(df, taxref) {
     df %>% 
-        dplyr::left_join(dplyr::select(taxref, LB_NOM, CD_REF), 
+        left_join(select(taxref, LB_NOM, CD_REF), 
                          by = c("espece" = "LB_NOM")) %>% 
-        dplyr::select(-espece) %>% 
-        dplyr::bind_cols(find_taxonomy(cd_ref = .$CD_REF, taxref = taxref)) %>% 
-        dplyr::select(espece, url_ofb = lien_fiche_ofb) %>% 
-        dplyr::mutate(lien_ofb = glue::glue("<a href='{url_ofb}' target='_blank'>OFB</a>"))
+        select(-espece) %>% 
+        bind_cols(find_taxonomy(cd_ref = .$CD_REF, taxref = taxref)) %>% 
+        select(espece, url_ofb = lien_fiche_ofb) %>% 
+        mutate(lien_ofb = glue("<a href='{url_ofb}' target='_blank'>OFB</a>"))
 }
 
 #' Title
@@ -170,32 +170,32 @@ preparer_fiches <- function(df, taxref) {
 #'
 #' @examples
 #' @importFrom dplyr mutate filter across select bind_cols
-#' @importFrom glue glue
 #' @importFrom janitor clean_names
 #' @importFrom lubridate as_date year
+#' @importFrom stringr str_remove_all
 preparer_observations <- function(df, condition, taxref) {
     df %>% 
-        janitor::clean_names() %>% 
-        dplyr::mutate(annee = date_debut %>% 
-                   lubridate::as_date() %>% 
-                   lubridate::year()) %>% 
-        dplyr::filter(
-            dplyr::across(c(longitude, latitude), function(x) {!is.na(x)}),
+        clean_names() %>% 
+        mutate(annee = date_debut %>% 
+                   as_date() %>% 
+                   year()) %>% 
+        filter(
+            across(c(longitude, latitude), function(x) {!is.na(x)}),
             (annee >= 2000 & annee <= 2020)
         ) %>% 
-        dplyr::mutate(
+        mutate(
             precision = niveau_precision_localisation %>% 
-                stringr::str_remove_all(pattern = "XY ") %>% 
-                stringr::str_remove_all(pattern = "centro.{1}de ")
+                str_remove_all(pattern = "XY ") %>% 
+                str_remove_all(pattern = "centro.{1}de ")
             ) %>%
-        dplyr::select(where(~ !(all(is.na(.))))) %>% 
-        dplyr::filter({{ condition }}) %>%
-        dplyr::select(libelle_jeu_donnees, observateur, determinateur, cd_ref,
+        select(where(~ !(all(is.na(.))))) %>% 
+        filter({{ condition }}) %>%
+        select(libelle_jeu_donnees, observateur, determinateur, cd_ref,
                annee, date_debut,
                latitude, longitude, precision, 
                commune, departement, id_sinp_occtax) %>% 
-        dplyr::bind_cols(find_taxonomy(.$cd_ref, taxref)) %>%
-        dplyr::select(-cd_ref) 
+        bind_cols(find_taxonomy(.$cd_ref, taxref)) %>%
+        select(-cd_ref) 
 }
 
 #' Title
@@ -214,15 +214,15 @@ preparer_observations <- function(df, condition, taxref) {
 #' @importFrom stringr str_replace_na
 ajouter_information_especes <- function(df, fiches, protection, conservation){
     df %>% 
-        dplyr::left_join(fiches_ofb, by = "espece") %>% 
-        dplyr::left_join(protection, by = c("espece" = "lb_nom")) %>% 
-        dplyr::left_join(conservation, by = c("espece" = "lb_nom")) %>% 
-        dplyr::mutate(lien_fiche = glue::glue("{lien_inpn}{ifelse(!is.na(lien_ofb), paste0(' | ', lien_ofb), '')}")) %>% 
-        dplyr::mutate(
-            dplyr::across(
-                dplyr::starts_with("Liste rouge"),
-                stringr::str_replace_na, replacement = "Non évaluée"
+        left_join(fiches_ofb, by = "espece") %>% 
+        left_join(protection, by = c("espece" = "lb_nom")) %>% 
+        left_join(conservation, by = c("espece" = "lb_nom")) %>% 
+        mutate(lien_fiche = glue("{lien_inpn}{ifelse(!is.na(lien_ofb), paste0(' | ', lien_ofb), '')}")) %>% 
+        mutate(
+            across(
+                starts_with("Liste rouge"),
+                str_replace_na, replacement = "Non évaluée"
                 )
             ) %>% 
-        dplyr::select(-lien_inpn, -lien_ofb, -url_inpn, -url_ofb)
+        select(-lien_inpn, -lien_ofb, -url_inpn, -url_ofb)
 }

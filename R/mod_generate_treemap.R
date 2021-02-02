@@ -6,7 +6,7 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList 
+#' @import shiny
 #' @importFrom plotly plotlyOutput
 mod_generate_treemap_ui <- function(id){
   ns <- NS(id)
@@ -19,9 +19,8 @@ mod_generate_treemap_ui <- function(id){
 #'
 #' @noRd 
 #' 
-#' @importFrom shiny moduleServer observe reactive req reactiveVal observeEvent
-#' @importFrom plotly renderPlotly event_data layout
-#' @importFrom dplyr filter
+#' @import shiny
+#' @importFrom plotly renderPlotly layout event_data
 mod_generate_treemap_server <- function(id, donnees, limites, titre = ""){
   moduleServer(
     id,

@@ -6,7 +6,7 @@
 #'
 #' @noRd 
 #'
-#' @importFrom shiny NS tagList 
+#' @import shiny
 mod_select_ui <- function(id, placeholder, choices){
   select_choices <- c("", choices)
   
@@ -30,7 +30,7 @@ mod_select_ui <- function(id, placeholder, choices){
     
 #' select_precision Server Function
 #'
-#' @importFrom shiny reactive moduleServer
+#' @import shiny
 #' @noRd 
 mod_select_server <- function(id){
   moduleServer(
