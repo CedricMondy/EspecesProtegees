@@ -27,7 +27,7 @@ mod_generate_map_ui <- function(id){
 #' @noRd 
 #' @import shiny 
 #' @importFrom leaflet renderLeaflet
-mod_generate_map_server <- function(id, donnees, taxa, limites_communes, grille_inpn){
+mod_generate_map_server <- function(id, donnees, taxa, departements, limites_departements, limites_communes, grille_inpn){
   moduleServer(
     id,
     function(input, output, session){
@@ -41,11 +41,10 @@ mod_generate_map_server <- function(id, donnees, taxa, limites_communes, grille_
         })
       
       observe({
-        req(donnees())
-        
-        update_map_scale("map", data = donnees())
-        
-      })
+        update_map_scale("map", 
+                         departements = departements(),
+                         limites_departements = limites_departements)
+        })
       
       observeEvent(input$richness, {
         observe({

@@ -15,6 +15,25 @@ preparer_region <- function(fichier, code_region) {
         filter(INSEE_REG %in% code_region)
 }
 
+#' Title
+#'
+#' @param fichier_departements 
+#' @param code_region 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' @importFrom dplyr filter select
+#' @importFrom rmapshaper ms_simplify
+#' @importFrom sf st_read
+preparer_departements <- function(fichier_departements, code_region) {
+    fichier_departements %>% 
+        st_read() %>% 
+        filter(INSEE_REG %in% code_region) %>% 
+        select(NOM_DEP) %>% 
+        ms_simplify()
+}
 
 #' Title
 #'

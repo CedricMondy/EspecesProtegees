@@ -6,6 +6,8 @@
 #' @importFrom sf st_set_crs
 #' @noRd
 app_server <- function( input, output, session ) {
+  LimitesDepartements <- EspecesProtegees:::LimitesDepartements %>% 
+    st_set_crs(4326)
   LimitesCommunes <- EspecesProtegees:::LimitesCommunes %>% 
     st_set_crs(4326)
   GrilleINPN <- EspecesProtegees:::GrilleINPN %>% 
@@ -54,6 +56,8 @@ app_server <- function( input, output, session ) {
     id = "carte",
     donnees = ResumeDonneesFiltrees,
     taxa = taxa,
+    departements = departements,
+    limites_departements = LimitesDepartements,
     limites_communes = LimitesCommunes,
     grille_inpn = GrilleINPN
   )

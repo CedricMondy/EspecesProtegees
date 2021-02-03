@@ -222,17 +222,18 @@ update_map <- function(mapId, data, limites_communes, grille_inpn) {
 
 #' @importFrom leaflet leafletProxy fitBounds
 #' @importFrom sf st_bbox
-update_map_scale <- function(mapId, data) {
-    if (nrow(data) > 0) {
-        bbox <- data %>% 
-        inpn_to_sf() %>% 
-        st_bbox()
-    
-    leafletProxy(mapId) %>% 
-        fitBounds(lng1 = bbox[["xmin"]],
-                  lat1 = bbox[["ymin"]],
-                  lng2 = bbox[["xmax"]],
-                  lat2 = bbox[["ymax"]])
+#' @importfrom dplyr filter
+update_map_scale <- function(mapId, departements, limites_departements) {
+    if (!is.null(departements)) {
+        bbox <- limites_departements %>% 
+            filter(NOM_DEP %in% departements) %>% 
+            st_bbox()
+        
+        leafletProxy(mapId) %>% 
+            fitBounds(lng1 = bbox[["xmin"]],
+                      lat1 = bbox[["ymin"]],
+                      lng2 = bbox[["xmax"]],
+                      lat2 = bbox[["ymax"]])
     }
 }
 
