@@ -36,15 +36,19 @@ fiches_ofb <- here("dev/fiches_ofb_especes_protegees.csv") %>%
 ### données ADMIN-EXPRESS Décembre 2020: ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS_2-4__SHP__FRA_WM_2020-12-15.7z
 ### Limites région ----
 LimitesRegion <- here("dev/rawdata/ADMIN-EXPRESS_2-4__SHP__FRA_2020-12-15/ADMIN-EXPRESS/1_DONNEES_LIVRAISON_2020-12-15/ADE_2-4_SHP_LAMB93_FR/REGION.shp") %>% 
-    preparer_region(code_region = 11)
+    preparer_adminexpress(code_region = 11)
 
 ### Limites départements ----
 LimitesDepartements <- here("dev/rawdata/ADMIN-EXPRESS_2-4__SHP__FRA_2020-12-15/ADMIN-EXPRESS/1_DONNEES_LIVRAISON_2020-12-15/ADE_2-4_SHP_LAMB93_FR/DEPARTEMENT.shp") %>% 
-    preparer_departements(code_region = 11)
+    preparer_adminexpress(code_region = 11,
+                          colonne = "NOM_DEP",
+                          simplifier = TRUE)
 
 ### Limites communes ----
 LimitesCommunes <- here("dev/rawdata/ADMIN-EXPRESS_2-4__SHP__FRA_2020-12-15/ADMIN-EXPRESS/1_DONNEES_LIVRAISON_2020-12-15/ADE_2-4_SHP_LAMB93_FR/COMMUNE.shp") %>% 
-    preparer_communes(code_region = 11)
+    preparer_adminexpress(code_region = 11,
+                          colonne = "ID",
+                          simplifier = TRUE)
 
 
 ### Grille 10km x 10km INPN ----

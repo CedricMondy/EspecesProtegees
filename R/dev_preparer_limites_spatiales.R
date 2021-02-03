@@ -2,58 +2,30 @@
 #'
 #' @param fichier 
 #' @param code_region 
+#' @param colonne
+#' @param simplifier 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-#' @importFrom dplyr filter
-#' @importFrom sf st_read
-preparer_region <- function(fichier, code_region) {
+preparer_adminexpress <- function(fichier, code_region, colonne = NULL, simplifier = FALSE) {
     fichier %>% 
-        st_read() %>% 
-        filter(INSEE_REG %in% code_region)
+        sf::st_read() %>% 
+        dplyr::filter(INSEE_REG %in% code_region) %>% 
+        (function(df) {
+            if (!is.null(colonne))
+                df <- df %>% 
+                    dplyr::select(!!colonne)
+            
+            if (simplifier)
+                df <- df %>% 
+                    rmapshaper::ms_simplify()
+            
+            df
+        })
 }
 
-#' Title
-#'
-#' @param fichier_departements 
-#' @param code_region 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' @importFrom dplyr filter select
-#' @importFrom rmapshaper ms_simplify
-#' @importFrom sf st_read
-preparer_departements <- function(fichier_departements, code_region) {
-    fichier_departements %>% 
-        st_read() %>% 
-        filter(INSEE_REG %in% code_region) %>% 
-        select(NOM_DEP) %>% 
-        ms_simplify()
-}
-
-#' Title
-#'
-#' @param fichier_communes 
-#' @param code_region 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' @importFrom dplyr filter select
-#' @importFrom rmapshaper ms_simplify
-#' @importFrom sf st_read
-preparer_communes <- function(fichier_communes, code_region) {
-        fichier_communes %>% 
-            st_read() %>% 
-            filter(INSEE_REG %in% code_region) %>% 
-            select(ID) %>% 
-            ms_simplify()
-}
 
 #' Title
 #'
@@ -64,12 +36,10 @@ preparer_communes <- function(fichier_communes, code_region) {
 #' @export
 #'
 #' @examples
-#' @importFrom dplyr filter select
-#' @importFrom sf st_read st_join
 preparer_inpn <- function(fichier_grille_inpn, limites_region) {
     fichier_grille_inpn %>% 
-            st_read() %>% 
-            st_join(limites_region) %>% 
-            filter(!is.na(ID)) %>% 
-            select(ID = CODE_10KM)
+            sf::st_read() %>% 
+            sf::st_join(limites_region) %>% 
+            dplyr::filter(!is.na(ID)) %>% 
+            dplyr::select(ID = CODE_10KM)
 }
