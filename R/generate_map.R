@@ -169,19 +169,6 @@ generate_map <- function(data, limites_communes, grille_inpn) {
                              updatewhenZooming = TRUE,
                              updateWhenIdle = TRUE
                          )) %>% 
-        # NOT WORKING
-        # addProviderTiles("GeoportailFrance.ignMaps",
-        #                  group = "IGN",
-        #                  options = providerTileOptions(
-        #                      updatewhenZooming = TRUE,
-        #                      updateWhenIdle = TRUE
-        #                  )) %>% 
-        # addProviderTiles("GeoportailFrance.parcels",
-        #                  group = "Parcelles",
-        #                  options = providerTileOptions(
-        #                      updatewhenZooming = TRUE,
-        #                      updateWhenIdle = TRUE
-        #                  )) %>% 
         addScaleBar(position = "bottomright") %>% 
         addResetMapButton() %>% 
         addSearchOSM(
@@ -193,7 +180,10 @@ generate_map <- function(data, limites_communes, grille_inpn) {
             )
         ) %>%
         addLayersControl(baseGroups = c(
-            "OSM", "Orthophotos", "Parcelles"
+            "OSM", "Orthophotos"
+        ),
+        overlayGroups = c(
+            "Mailles", "Communes", "Points"
         ),
         position = "topright") %>% 
         fitBounds(lng1 = bbox[["xmin"]],
@@ -221,7 +211,7 @@ update_map <- function(mapId, data, limites_communes, grille_inpn) {
                              limites_communes = limites_communes,
                              grille_inpn = grille_inpn) %>% 
             addLayersControl(baseGroups = c(
-                "OSM", "Orthophotos", "Parcelles"
+                "OSM", "Orthophotos"
             ),
             overlayGroups = c(
                 "Mailles", "Communes", "Points"
@@ -314,7 +304,7 @@ add_grid <- function(mapId, data, limites_communes, grille_inpn) {
             clearGroup(group = "Richesse") %>%
             clearControls() %>% 
             addLayersControl(baseGroups = c(
-                "OSM", "Orthophotos", "Parcelles"
+                "OSM", "Orthophotos"
             ),
             overlayGroups = c(
                 "Mailles", "Communes", "Points", "Richesse"
@@ -339,7 +329,7 @@ clear_grid <- function(mapId) {
         clearGroup(group = "Richesse") %>%
         clearControls() %>% 
         addLayersControl(baseGroups = c(
-            "OSM", "Orthophotos", "Parcelles"
+            "OSM", "Orthophotos"
         ),
         overlayGroups = c(
             "Mailles", "Communes", "Points"
