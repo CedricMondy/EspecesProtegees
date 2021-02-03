@@ -248,9 +248,17 @@ add_grid <- function(mapId, data, limites_communes, grille_inpn) {
             (function(df) {
                 bind_rows(
                     df %>% 
-                        filter(precision %in% c("point", "ligne/polygone")) %>% 
-                        inpn_to_sf() %>% 
-                        distinct(espece) %>% 
+                        filter(precision %in% c("point", "ligne/polygone")) %>%
+                        inpn_to_sf() %>%
+                        (function(.df) {
+                            if (nrow(.df) > 0) {
+                                .df %>% 
+                                    distinct(espece)
+                            } else {
+                                .df %>% 
+                                    select(espece)
+                            }
+                        }) %>% 
                         st_transform(crs = 2154) %>% 
                         st_join(grilleL93, .),
                     df %>% 
@@ -265,14 +273,22 @@ add_grid <- function(mapId, data, limites_communes, grille_inpn) {
                         filter(precision %in% c("maille")) %>% 
                         left_join(grilleL93, ., by = c("maille" = "ID")) %>% 
                         filter(!is.na(espece)) %>% 
-                        distinct(maille, espece)
+                        (function(.df) {
+                            if (nrow(.df) > 0) {
+                                .df %>% 
+                                    distinct(maille, espece)
+                            } else {
+                                .df %>% 
+                                    select(maille, espece)
+                            }
+                        })
                 )
             }) %>%  
             filter(!is.na(espece)) %>% 
             st_transform(crs = 4326) %>% 
             group_by(maille) %>% 
-            summarise(S = n_distinct(espece),
-                      species = format_species_list(espece),
+            summarise(S = ifelse(length(espece) == 0, 0, n_distinct(espece)),
+                      species = ifelse(length(espece) == 0, "", format_species_list(espece)),
                       .groups = "drop")
         
         leafletProxy(mapId, data = inpn_to_sf(data)) %>%
