@@ -3,7 +3,7 @@ generate_taxalist <- function(data) {
     cols <- select(data,
                    ordre, famille, espece, nom_vernaculaire, 
                    lien_fiche, niveau_protection, lien_protection, 
-                   matches("^(Liste rouge).+_lien$")) %>% 
+                   matches("^(liste rouge).+_lien$")) %>% 
         colnames()
     
     data %>% 
@@ -36,9 +36,9 @@ generate_taxalist <- function(data) {
             `Fiche espèce` = lien_fiche,
             `Protection` = niveau_protection,
             `Texte réglementaire` = lien_protection,
-            `Mondiale` = `Liste rouge mondiale_lien`,
-            `Européenne` = `Liste rouge européenne_lien`,
-            `Nationale` = `Liste rouge nationale_lien`,
-            `Régionale` = `Liste rouge régionale_lien`
+            `Mondiale` = `liste rouge mondiale_lien`,
+            `Européenne` = `liste rouge europeenne_lien`,
+            `Nationale` = `liste rouge nationale_lien`,
+            `Régionale` = `liste rouge regionale_lien`
         )
 }

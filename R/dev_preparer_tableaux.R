@@ -7,54 +7,66 @@
 #' @export
 #'
 #' @examples
-#' @importFrom dplyr filter mutate group_by slice ungroup distinct left_join
-#' @importFrom glue glue
-#' @importFrom janitor clean_names
-#' @importFrom stringr str_extract
-#' @importFrom tidyr pivot_wider
 preparer_uicn <- function(df, zones_administratives) {
-    df %>%
-        filter(LB_ADM_TR %in% zones_administratives) %>% 
-        clean_names() %>% 
-        filter(regroupement_type == "Liste rouge") %>% 
-        mutate(statut = factor(label_statut,
-                               levels = c(
-                                   "Non applicable",
-                                   "Non évaluée",
-                                   "Données insuffisantes",
-                                   "Préoccupation mineure",
-                                   "Quasi menacée",
-                                   "Vulnérable",
-                                   "En danger",
-                                   "En danger critique",
-                                   "Disparue au niveau régional",
-                                   "On ne sait pas si l'espèce n'est pas éteinte ou disparue",
-                                   "Eteinte à l'état sauvage",
-                                   "Eteinte au niveau mondial"
-                               ))) %>% 
+    set_levels <- function(x) {
+        x %>% 
+            unique() %>% 
+            janitor::make_clean_names() %>%
+            stringr::str_replace_all(pattern = "_", replacement = " ") %>% 
+            purrr::set_names(unique(x))
+    }
+    
+    df_uicn <- df %>%
+        dplyr::filter(LB_ADM_TR %in% zones_administratives) %>% 
+        janitor::clean_names() %>% 
+        dplyr::filter(regroupement_type == "Liste rouge")
+    
+    conservation_levels <- set_levels(df_uicn$lb_type_statut)
+    statut_levels <- set_levels(df_uicn$label_statut)
+        
+    df_uicn  %>% 
+        dplyr::mutate(
+            lb_type_statut = conservation_levels[lb_type_statut],
+            statut = statut_levels[label_statut] %>% 
+                factor(levels = c(
+                    "non evaluee",
+                    "non applicable",
+                    "donnees insuffisantes",
+                    "preoccupation mineure",
+                    "quasi menacee",
+                    "vulnerable",
+                    "en danger",
+                    "en danger critique",
+                    "disparue au niveau regional",
+                    "on ne sait pas si lespece nest pas eteinte ou disparue",
+                    "eteinte a letat sauvage",
+                    "eteinte au niveau mondial"
+                ))
+            ) %>% 
         # Gère les statuts multiples pour une même espèce et une même liste
-        mutate(annee = full_citation %>% 
-                   str_extract(pattern = "\\d{4}")) %>% 
-        mutate(statut_num = as.numeric(statut)) %>% 
-        group_by(lb_nom, lb_type_statut) %>% 
+        dplyr::mutate(annee = full_citation %>% 
+                   stringr::str_extract(pattern = "\\d{4}")) %>% 
+        dplyr::mutate(statut_num = as.numeric(statut)) %>% 
+        dplyr::group_by(lb_nom, lb_type_statut) %>% 
         # ne conserve que la liste rouge la plus récente
-        filter(annee == max(annee)) %>% 
+        dplyr::filter(annee == max(annee)) %>% 
         # ne conserve que l'évaluation la plus préoccupante
-        filter(statut_num == max(statut_num)) %>% 
-        slice(1) %>% 
-        ungroup() %>% 
-        mutate(lien_uicn = glue("<a href='{doc_url}' target='_blank'>{statut}</a>")) %>%
-        distinct(lb_nom, lb_type_statut, statut, lien_uicn) %>% 
+        dplyr::filter(statut_num == max(statut_num)) %>% 
+        dplyr::slice(1) %>% 
+        dplyr::ungroup() %>% 
+        dplyr::mutate(lien_uicn = glue::glue("<a href='{doc_url}' target='_blank'>{statut}</a>"),
+               statut = as.character(statut)) %>%
+        dplyr::distinct(lb_nom, lb_type_statut, statut, lien_uicn) %>% 
         (function(df) {
-            pivot_wider(
+            tidyr::pivot_wider(
                 df,
                 id_cols = lb_nom,
                 names_from = lb_type_statut,
                 values_from = statut,
-                values_fill = "Non évaluée"
+                values_fill = "non evaluee"
             ) %>% 
-                left_join(
-                    pivot_wider(
+                dplyr::left_join(
+                    tidyr::pivot_wider(
                         df,
                         id_cols = lb_nom,
                         names_from = lb_type_statut,

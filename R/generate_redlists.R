@@ -6,9 +6,31 @@
 #' @importFrom tidyr pivot_longer
 generate_redlists <- function(data) {
 
+    conservation_levels <- c(
+        `liste rouge mondiale` = "Liste rouge mondiale",
+        `liste rouge europeenne` = "Liste rouge européenne",
+        `liste rouge nationale` = "Liste rouge nationale",
+        `liste rouge regionale` = "Liste rouge régionale"
+    )
+    
+    statut_levels <- c(
+         `non evaluee` = "Non évaluée",
+         `non applicable` = "Non applicable",
+         `donnees insuffisantes` = "Données insuffisantes",
+         `preoccupation mineure` = "Préoccupation mineure",
+         `quasi menacee` = "Quasi menacée",
+         `vulnerable` = "Vulnérable",
+         `en danger` = "En danger",
+         `en danger critique` = "En danger critique",
+         `disparue au niveau regional` = "Disparue au niveau régional",
+         `on ne sait pas si lespece nest pas eteinte ou disparue` = "On ne sait pas si l'espèce n'est pas éteinte ou disparue",
+         `eteinte a letat sauvage` = "Eteinte à l'état sauvage",
+         `eteinte au niveau mondial` = "Eteinte au niveau mondial"
+    )
+    
     if (nrow(data) > 0) {
         data_conservation <- data %>% 
-            select(espece, contains("Liste rouge")) %>% 
+            select(espece, contains("liste rouge")) %>% 
             select(-contains("_lien")) %>% 
             distinct() %>% 
             pivot_longer(
@@ -16,55 +38,30 @@ generate_redlists <- function(data) {
                 names_to = 'conservation',
                 values_to = 'statut'
             ) %>% 
-            mutate(
-                conservation = conservation %>% 
-                    factor(levels = c(
-                        "Liste rouge mondiale", 
-                        "Liste rouge européenne", 
-                        "Liste rouge nationale",
-                        "Liste rouge régionale"
-                    )
-                    ),
-                statut = factor(
-                    statut,
-                    levels = c(
-                        "Non évaluée",
-                        "Non applicable",
-                        "Données insuffisantes",
-                        "Préoccupation mineure",
-                        "Quasi menacée",
-                        "Vulnérable",
-                        "En danger",
-                        "En danger critique",
-                        "Disparue au niveau régional",
-                        "On ne sait pas si l'espèce n'est pas éteinte ou disparue",
-                        "Eteinte à l'état sauvage",
-                        "Eteinte au niveau mondial"
-                    )
-                )
-            ) %>% 
             count(conservation, statut) %>% 
-            mutate(color = case_when(
-                statut %in% c("Non applicable", "Non évaluée") ~ "#FFFFFF",
-                statut == "Données insuffisantes" ~ "#CCCCCC",
-                statut == "Préoccupation mineure" ~ "#7CCD7C",
-                statut == "Quasi menacée" ~ "#CDCD00",
-                statut == "Vulnérable" ~ "#FFD700",
-                statut == "En danger" ~ "#FF8C69",
-                statut == "En danger critique" ~ "#FF0000",
-                statut %in% c(
-                    "Disparue au niveau régional",
-                    "On ne sait pas si l'espèce n'est pas éteinte ou disparue",
-                    "Eteinte à l'état sauvage"
-                ) ~ "#68228B",
-                statut == "Eteinte au niveau mondial" ~ "#000000"
-            ),
-            nombre_especes = glue("{statut}: {n} espèces") %>% 
-                str_wrap(width = 25) %>% 
-                str_replace_all(pattern = "\n", replacement = "<br>"),
-            labs = glue("<b>{conservation}</b><br>{nombre_especes}") %>% 
-                map(HTML)
-            ) %>% 
+            mutate(
+                conservation = conservation_levels[conservation] %>% 
+                    factor(levels = conservation_levels),
+                statut = statut_levels[statut] %>% 
+                    factor(levels = statut_levels)) %>% 
+            mutate(
+                color = case_when(
+                    statut %in% statut_levels[1:2] ~ "#FFFFFF",
+                    statut == statut_levels[3] ~ "#CCCCCC",
+                    statut == statut_levels[4] ~ "#7CCD7C",
+                    statut == statut_levels[5] ~ "#CDCD00",
+                    statut == statut_levels[6] ~ "#FFD700",
+                    statut == statut_levels[7] ~ "#FF8C69",
+                    statut == statut_levels[8] ~ "#FF0000",
+                    statut %in% statut_levels[9:11] ~ "#68228B",
+                    statut == statut_levels[12] ~ "#000000"
+                ),
+                nombre_especes = glue("{statut}: {n} espèces") %>% 
+                    str_wrap(width = 25) %>% 
+                    str_replace_all(pattern = "\n", replacement = "<br>"),
+                labs = glue("<b>{conservation}</b><br>{nombre_especes}") %>% 
+                    map(HTML)
+                ) %>% 
             arrange(conservation, desc(statut))
         
         data_conservation %>% 
@@ -82,7 +79,7 @@ generate_redlists <- function(data) {
                         labels = ~statut,
                         values = ~n,
                         sort = FALSE,
-                        textinfo='none',
+                        textinfo = 'none',
                         text = ~labs,
                         hoverinfo = 'text',
                         marker = list(
