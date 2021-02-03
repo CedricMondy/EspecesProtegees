@@ -31,12 +31,126 @@ format_species_list <- function(species) {
         })
 }
 
+#' @importFrom dplyr inner_join filter rowwise mutate group_by summarise n_distinct select
+#' @importFrom glue glue
+#' @importFrom purrr map
+prepare_polygons <- function(data, polygons, type) {
+    inner_join(
+        polygons,
+        data %>% 
+            filter(precision == type) %>% 
+            rowwise() %>% 
+            mutate(espece = paste0("<i>", espece, "</i>")) %>% 
+            group_by(precision, ID, departement, commune) %>% 
+            summarise(S = n_distinct(espece),
+                      especes = format_species_list(espece),
+                      .groups = "drop") %>% 
+            mutate(labs = glue("<b>{ifelse(!is.na(commune), commune, '')} ({departement})</b><br><small>{precision}</small><br>{ifelse(S == 1, especes, paste0('<b>', S, ' espèces</b> (cliquer pour les afficher)'))}") %>% 
+                       map(HTML),
+                   popups = especes) %>% 
+            select(ID, labs, popups),
+        by = "ID"
+    ) 
+}
+
+#' @importFrom dplyr ungroup distinct filter mutate
+#' @importFrom glue glue
+#' @importFrom leaflet colorFactor addPolygons addCircleMarkers
+#' @importFrom purrr map
+#' @importFrom stringr str_replace_all
+add_observations <- function(map, data, limites_communes, grille_inpn) {
+    speciesColors <- data %>% 
+        ungroup() %>% 
+        distinct(espece, color)
+    
+    palSpColor <- colorFactor(
+        palette = speciesColors$color,
+        levels = speciesColors$espece
+    )
+    
+    data_points <- data %>% 
+        filter(precision %in% c("point", "ligne/polygone")) %>% 
+        inpn_to_sf() %>% 
+        mutate(
+            labs = glue("<b>{ifelse(!is.na(commune), commune, '')} ({departement})<br><small>{precision}</small><br></b><i>{espece}</i><br>{ifelse(!is.na(nom_vernaculaire), paste0('(', str_wrap(nom_vernaculaire, width = 40), ')'), '')}") %>% 
+                str_replace_all(pattern = "\n", replacement = "<br>") %>% 
+                map(HTML)
+        )
+    
+    data_communes <- prepare_polygons(
+        data = data,
+        polygons = limites_communes,
+        type = "commune"
+    )
+    
+    data_mailles <- prepare_polygons(
+        data = data,
+        polygons = grille_inpn,
+        type = "maille"
+    )
+    
+    map %>% 
+        (function(x) {
+            if (nrow(data_mailles) > 0) {
+                x <- x %>% 
+                    addPolygons(
+                        data = data_mailles,
+                        fillColor = c("#0000FF"),
+                        fillOpacity = .1,
+                        stroke = TRUE,
+                        color = "black",
+                        opacity = 1,
+                        weight = 1,
+                        label = ~labs,
+                        popup = ~popups,
+                        group = "Mailles"
+                    )  
+            }
+            
+            if (nrow(data_communes) > 0) {
+                x <- x %>% 
+                    addPolygons(
+                        data = data_communes,
+                        fillColor = c("#0000FF"),
+                        fillOpacity = .1,
+                        stroke = TRUE,
+                        weight = 1,
+                        color = "black",
+                        opacity = 1,
+                        label = ~labs,
+                        popup = ~popups,
+                        group = "Communes"
+                    )  
+            }
+            
+            if (nrow(data_points) > 0) {
+                x <- x %>% 
+                    addCircleMarkers(
+                        data = inpn_to_sf(data_points),
+                        fillColor = palSpColor(data_points$espece),
+                        fillOpacity = 1,
+                        radius = 5,
+                        stroke = TRUE,
+                        weight = 2,
+                        color = "black",
+                        label = ~labs,
+                        group = "Points"
+                    )
+            }
+            
+            x
+        })
+}
+
 #' @importFrom leaflet leaflet leafletOptions addProviderTiles providerTileOptions addScaleBar addLayersControl fitBounds
 #' @importFrom leaflet.extras addResetMapButton addSearchOSM searchOptions
 #' @importFrom sf st_bbox
-generate_map <- function() {
+generate_map <- function(data, limites_communes, grille_inpn) {
     
-    bbox <- birds %>% 
+    data <- data %>% 
+        add_species_colors()
+    
+    bbox <- data %>% 
         inpn_to_sf() %>% 
         st_bbox()
     
@@ -55,18 +169,19 @@ generate_map <- function() {
                              updatewhenZooming = TRUE,
                              updateWhenIdle = TRUE
                          )) %>% 
-        addProviderTiles("GeoportailFrance.ignMaps",
-                         group = "IGN",
-                         options = providerTileOptions(
-                             updatewhenZooming = TRUE,
-                             updateWhenIdle = TRUE
-                         )) %>% 
-        addProviderTiles("GeoportailFrance.parcels",
-                         group = "Parcelles",
-                         options = providerTileOptions(
-                             updatewhenZooming = TRUE,
-                             updateWhenIdle = TRUE
-                         )) %>% 
+        # NOT WORKING
+        # addProviderTiles("GeoportailFrance.ignMaps",
+        #                  group = "IGN",
+        #                  options = providerTileOptions(
+        #                      updatewhenZooming = TRUE,
+        #                      updateWhenIdle = TRUE
+        #                  )) %>% 
+        # addProviderTiles("GeoportailFrance.parcels",
+        #                  group = "Parcelles",
+        #                  options = providerTileOptions(
+        #                      updatewhenZooming = TRUE,
+        #                      updateWhenIdle = TRUE
+        #                  )) %>% 
         addScaleBar(position = "bottomright") %>% 
         addResetMapButton() %>% 
         addSearchOSM(
@@ -78,131 +193,35 @@ generate_map <- function() {
             )
         ) %>%
         addLayersControl(baseGroups = c(
-            "OSM", "IGN", "Orthophotos", "Parcelles"
+            "OSM", "Orthophotos", "Parcelles"
         ),
         position = "topright") %>% 
         fitBounds(lng1 = bbox[["xmin"]],
                   lat1 = bbox[["ymin"]],
                   lng2 = bbox[["xmax"]],
-                  lat2 = bbox[["ymax"]])
+                  lat2 = bbox[["ymax"]]) %>% 
+        add_observations(data = data,
+                         limites_communes = limites_communes,
+                         grille_inpn = grille_inpn)
     
 }
 
-#' @importFrom dplyr inner_join filter rowwise mutate group_by summarise n_distinct select ungroup distinct
-#' @importFrom glue glue
-#' @importFrom leaflet colorFactor leafletProxy clearMarkers clearShapes clearControls addPolygons addCircleMarkers addLayersControl
-#' @importFrom purrr map
-#' @importFrom stringr str_replace_all str_wrap
-#' @importFrom sf st_transform st_set_crs
+
+#' @importFrom leaflet leafletProxy clearMarkers clearShapes clearControls addLayersControl
 update_map <- function(mapId, data, limites_communes, grille_inpn) {
 
-    prepare_polygons <- function(data, polygons, type) {
-        inner_join(
-            polygons,
-            data %>% 
-                filter(precision == type) %>% 
-                rowwise() %>% 
-                mutate(espece = paste0("<i>", espece, "</i>")) %>% 
-                group_by(precision, ID, departement, commune) %>% 
-                summarise(S = n_distinct(espece),
-                          especes = format_species_list(espece),
-                          .groups = "drop") %>% 
-                mutate(labs = glue("<b>{ifelse(!is.na(commune), commune, '')} ({departement})</b><br><small>{precision}</small><br>{ifelse(S == 1, especes, paste0('<b>', S, ' espèces</b> (cliquer pour les afficher)'))}") %>% 
-                              map(HTML),
-                       popups = especes) %>% 
-                select(ID, labs, popups),
-            by = "ID"
-        ) 
-    }
-    
     if (nrow(data) > 0) {
 
-        speciesColors <- data %>% 
-            ungroup() %>% 
-            distinct(espece, color)
-        
-        palSpColor <- colorFactor(
-            palette = speciesColors$color,
-            levels = speciesColors$espece
-        )
-        
-        data_points <- data %>% 
-            filter(precision %in% c("point", "ligne/polygone")) %>% 
-            inpn_to_sf() %>% 
-            mutate(
-                labs = glue("<b>{ifelse(!is.na(commune), commune, '')} ({departement})<br><small>{precision}</small><br></b><i>{espece}</i><br>{ifelse(!is.na(nom_vernaculaire), paste0('(', str_wrap(nom_vernaculaire, width = 40), ')'), '')}") %>% 
-                    str_replace_all(pattern = "\n", replacement = "<br>") %>% 
-                    map(HTML)
-            )
-        
-        data_communes <- prepare_polygons(
-            data = data,
-            polygons = limites_communes,
-            type = "commune"
-        )
-        
-        data_mailles <- prepare_polygons(
-            data = data,
-            polygons = grille_inpn,
-            type = "maille"
-        )
         
         leafletProxy(mapId) %>% 
             clearMarkers() %>% 
             clearShapes() %>% 
             clearControls() %>% 
-            (function(x) {
-                if (nrow(data_mailles) > 0) {
-                    x <- x %>% 
-                        addPolygons(
-                            data = data_mailles,
-                            fillColor = c("#0000FF"),
-                            fillOpacity = .1,
-                            stroke = TRUE,
-                            color = "black",
-                            opacity = 1,
-                            weight = 1,
-                            label = ~labs,
-                            popup = ~popups,
-                            group = "Mailles"
-                        )  
-                }
-                
-                if (nrow(data_communes) > 0) {
-                    x <- x %>% 
-                        addPolygons(
-                            data = data_communes,
-                            fillColor = c("#0000FF"),
-                            fillOpacity = .1,
-                            stroke = TRUE,
-                            weight = 1,
-                            color = "black",
-                            opacity = 1,
-                            label = ~labs,
-                            popup = ~popups,
-                            group = "Communes"
-                        )  
-                }
-                
-                if (nrow(data_points) > 0) {
-                    x <- x %>% 
-                        addCircleMarkers(
-                            data = inpn_to_sf(data_points),
-                            fillColor = palSpColor(data_points$espece),
-                            fillOpacity = 1,
-                            radius = 5,
-                            stroke = TRUE,
-                            weight = 2,
-                            color = "black",
-                            label = ~labs,
-                            group = "Points"
-                        )
-                }
-                
-                x
-            }) %>%
+            add_observations(data = data,
+                             limites_communes = limites_communes,
+                             grille_inpn = grille_inpn) %>% 
             addLayersControl(baseGroups = c(
-                "OSM", "IGN", "Orthophotos", "Parcelles"
+                "OSM", "Orthophotos", "Parcelles"
             ),
             overlayGroups = c(
                 "Mailles", "Communes", "Points"
@@ -295,7 +314,7 @@ add_grid <- function(mapId, data, limites_communes, grille_inpn) {
             clearGroup(group = "Richesse") %>%
             clearControls() %>% 
             addLayersControl(baseGroups = c(
-                "OSM", "IGN", "Orthophotos", "Parcelles"
+                "OSM", "Orthophotos", "Parcelles"
             ),
             overlayGroups = c(
                 "Mailles", "Communes", "Points", "Richesse"
@@ -320,7 +339,7 @@ clear_grid <- function(mapId) {
         clearGroup(group = "Richesse") %>%
         clearControls() %>% 
         addLayersControl(baseGroups = c(
-            "OSM", "IGN", "Orthophotos", "Parcelles"
+            "OSM", "Orthophotos", "Parcelles"
         ),
         overlayGroups = c(
             "Mailles", "Communes", "Points"

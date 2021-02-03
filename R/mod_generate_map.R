@@ -31,7 +31,14 @@ mod_generate_map_server <- function(id, donnees, taxa, limites_communes, grille_
   moduleServer(
     id,
     function(input, output, session){
-      output$map <- renderLeaflet(generate_map() )
+      
+      output$map <- renderLeaflet({
+        generate_map(
+          data = birds,
+          limites_communes = limites_communes,
+          grille_inpn = grille_inpn
+        )
+        })
       
       observe({
         req(donnees())
@@ -39,6 +46,25 @@ mod_generate_map_server <- function(id, donnees, taxa, limites_communes, grille_
         update_map_scale("map", data = donnees())
         
       })
+      
+      observeEvent(input$richness, {
+        observe({
+          req(donnees, taxa)
+        
+          if (input$richness) {
+            add_grid(
+              "map",
+              data = filter_taxa(data = donnees(), 
+                                 taxa = taxa()),
+              limites_communes = limites_communes,
+              grille_inpn = grille_inpn
+              )
+            } else {
+              clear_grid("map")
+              }
+        })
+        
+          })
       
       observe({
         req(donnees, taxa)
@@ -53,18 +79,7 @@ mod_generate_map_server <- function(id, donnees, taxa, limites_communes, grille_
           grille_inpn = grille_inpn
           )
         
-        observeEvent(input$richness, {
-          if (input$richness) {
-            add_grid(
-              "map",
-              data = data_map,
-              limites_communes = limites_communes,
-              grille_inpn = grille_inpn
-              )
-            } else {
-              clear_grid("map")
-              }
-          })
+        
         })
       
       reactive(input$map_bounds)

@@ -30,11 +30,6 @@ mod_select_data_ui <- function(id){
 #'
 #' @noRd 
 #' @import shiny
-#' @importFrom dplyr mutate distinct group_by group_split n_distinct left_join
-#' @importFrom leaflet colorFactor
-#' @importFrom paletteer paletteer_d
-#' @importFrom purrr map_df
-#' @importFrom tinter tinter
 mod_select_data_server <- function(id){
   moduleServer(
     id,
@@ -65,7 +60,7 @@ mod_select_data_server <- function(id){
             )
         })
         
-        raw_data <- switch(
+        switch(
           input$group,
           birds    = birds,
           fish     = fish,
@@ -73,35 +68,9 @@ mod_select_data_server <- function(id){
           mammals  = mammals,
           molluscs = molluscs,
           reptiles = reptiles
-          )
+          ) %>% 
+          add_species_colors()
         
-        palOrdre <- colorFactor(
-          palette = paletteer_d("RColorBrewer::Dark2") %>% 
-            as.character(),
-          domain = unique(raw_data$ordre)
-          )
-        
-        data <- raw_data %>% 
-          mutate(colorOrdre = palOrdre(ordre)) 
-        
-        colorSpecies <- distinct(data, ordre, espece, colorOrdre) %>% 
-            group_by(ordre) %>%
-          group_split() %>% 
-          map_df(function(df) {
-            df %>% 
-              mutate(
-                color = tinter(
-                x = unique(df$colorOrdre),
-                direction = "tints",
-                steps = 2 * n_distinct(df$espece),
-                crop = 2
-                ) %>% 
-                  sample(n_distinct(df$espece))
-              )
-          }) 
-        
-        data %>% 
-          left_join(colorSpecies, by = c("ordre", "colorOrdre", "espece"))
         })
       }
   )
