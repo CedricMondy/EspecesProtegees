@@ -45,7 +45,7 @@ prepare_polygons <- function(data, polygons, type) {
             summarise(S = n_distinct(espece),
                       especes = format_species_list(espece),
                       .groups = "drop") %>% 
-            mutate(labs = glue("<b>{ifelse(!is.na(commune), commune, '')} ({departement})</b><br><small>{precision}</small><br>{ifelse(S == 1, especes, paste0('<b>', S, ' espèces</b> (cliquer pour les afficher)'))}") %>% 
+            mutate(labs = glue("<b>{ifelse(!is.na(commune), commune, '')} ({departement})</b><br><small>{precision}</small><br>{ifelse(S < 10, especes, paste0('<b>', S, ' espèces</b> (cliquer pour les afficher)'))}") %>% 
                        map(HTML),
                    popups = especes) %>% 
             select(ID, labs, popups),
@@ -314,7 +314,7 @@ add_grid <- function(mapId, data, limites_communes, grille_inpn) {
                         fillColor = ~palRich(S),
                         fillOpacity = .75,
                         stroke = FALSE,
-                        label = ~glue("<b>{S} espèces</b>: cliquer pour les afficher") %>% map(HTML),
+                        label = ~glue("{ifelse(S < 10, paste0('<b>', S, ' espèces</b><br>', species), paste0('<b>', S, ' espèces</b> (cliquer pour les afficher)'))}") %>% map(HTML),
                         popup = ~species,
                         group = "Richesse",
                         options = popupOptions(className = "speciesPopup",
