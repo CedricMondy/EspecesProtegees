@@ -9,19 +9,34 @@
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 <!-- badges: end -->
 
+## Utilisation
+
+Ce package fournit une application {Shiny} pour visualiser les
+observations d’espèces protégées enregistrées dans [l’Inventaire
+National du Patrimoine Naturel
+(INPN)](https://inpn.mnhn.fr/accueil/index) et accessibles via le
+[Portail d’accès aux données d’observation sur les espèces
+(OpenObs)](https://openobs.mnhn.fr/).
+
+Les données récupérées depuis l’INPN sont pré-traitées dans le script
+`dev/prepare_data.R`.
+
+Un exemple de l’application pour la région Ile-de-France est consultable
+[ici](https://cedricmondy.shinyapps.io/EspecesProtegeesIDF/).
+
 ## Installation
 
-You can install the development version from
-[GitHub](https://github.com/) with:
+Ce package n’est installable que depuis [GitHub](https://github.com/)
+avec la commande suivante:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("CedricMondy/EspecesProtegees")
 ```
 
-## Code of Conduct
+## Code de conduite
 
-Please note that the EspecesProtegees project is released with a
-[Contributor Code of
-Conduct](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html).
-By contributing to this project, you agree to abide by its terms.
+Veuillez noter que le projet EspecesProtegees est soumis à un [code de
+conduite des
+contributeurs](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html).
+En contribuant au projet, vous acceptez de suivre les termes de ce code.
