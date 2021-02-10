@@ -129,7 +129,7 @@ insects <- observations %>%
 birds <- observations %>% 
     preparer_observations(
         condition = (classe == "Aves" &
-                         annee >= 2018),
+                         annee >= 2017),
         taxref = taxref
         ) %>% 
     ajouter_information_especes(fiches_ofb, protections, uicn) %>% 
