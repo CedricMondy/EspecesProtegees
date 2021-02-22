@@ -9,7 +9,7 @@ library(EspecesProtegees)
 # FUNCTIONS ---------------------------------------------------------------
 
 import::from(here, here)
-import::from(vroom, vroom)
+import::from(vroom, vroom, locale)
 import::from(dplyr, `%>%`, mutate, case_when)
 import::from(sf, st_transform)
 import::from(usethis, use_data)
@@ -17,16 +17,25 @@ import::from(usethis, use_data)
 # DATA IMPORT--------------------------------------------------------------
 ## Observations -----
 ## requête Openobs: https://openobs.mnhn.fr/openobs-hub/occurrences/search?q=(protection%3A%22true%22)%20AND%20(state%3A%C3%8Ele-de-France)%20AND%20(sensitive%3A%22XY%20point%22%20OR%20sensitive%3A%22XY%20centro%C3%AFde%20ligne%2Fpolygone%22%20OR%20sensitive%3A%22XY%20centro%C3%AFde%20commune%22%20OR%20sensitive%3A%22XY%20centro%C3%AFde%20maille%22)#tab_mapView
-observations <- here("dev/rawdata/records-2021-01-06/records-2021-01-06.csv") %>% 
-    vroom()
+observations <- read_from_zip(
+    zipfile = here("dev/rawdata/records-IdF-2021-02-15.zip"),
+    file = ".csv",
+    fun = vroom
+)
 
 ## TAXREF ----
-taxref <- here("dev/rawdata/TAXREF_v14_2020/TAXREFv14.txt") %>% 
-    vroom()
+taxref <- read_from_zip(
+    zipfile = here("dev/rawdata/TAXREF_v14_2020.zip"),
+    file = "TAXREFv14.txt",
+    fun = vroom
+)
 
 ## Statuts ----
-statuts <- here("dev/rawdata/BDC-Statuts-v13/BDC_STATUTS_13.csv") %>% 
-    vroom()
+statuts <- read_from_zip(
+    zipfile = here("dev/rawdata/BDC-Statuts-v14.zip"),
+    file = ".csv",
+    fun = vroom, locale = locale(encoding = 'WINDOWS-1252')
+)
 
 ## Fiches OFB ----
 fiches_ofb <- here("dev/fiches_ofb_especes_protegees.csv") %>% 
@@ -35,26 +44,39 @@ fiches_ofb <- here("dev/fiches_ofb_especes_protegees.csv") %>%
 ## Limites géographiques ----
 ### données ADMIN-EXPRESS Décembre 2020: ftp://Admin_Express_ext:Dahnoh0eigheeFok@ftp3.ign.fr/ADMIN-EXPRESS_2-4__SHP__FRA_WM_2020-12-15.7z
 ### Limites région ----
-LimitesRegion <- here("dev/rawdata/ADMIN-EXPRESS_2-4__SHP__FRA_2020-12-15/ADMIN-EXPRESS/1_DONNEES_LIVRAISON_2020-12-15/ADE_2-4_SHP_LAMB93_FR/REGION.shp") %>% 
-    preparer_adminexpress(code_region = 11)
+LimitesRegion <- read_from_zip(
+    zipfile = here("dev/rawdata/ADMIN-EXPRESS_2-4__SHP__FRA_WM_2020-12-15.7z"),
+    file = "REGION.shp",
+    fun = preparer_adminexpress, 
+    code_region = 11, crs = 2154
+)
 
 ### Limites départements ----
-LimitesDepartements <- here("dev/rawdata/ADMIN-EXPRESS_2-4__SHP__FRA_2020-12-15/ADMIN-EXPRESS/1_DONNEES_LIVRAISON_2020-12-15/ADE_2-4_SHP_LAMB93_FR/DEPARTEMENT.shp") %>% 
-    preparer_adminexpress(code_region = 11,
-                          colonne = "NOM_DEP",
-                          simplifier = TRUE)
+LimitesDepartements <- read_from_zip(
+    zipfile = here("dev/rawdata/ADMIN-EXPRESS_2-4__SHP__FRA_WM_2020-12-15.7z"),
+    file = "DEPARTEMENT.shp",
+    fun = preparer_adminexpress, 
+    code_region = 11, colonne = "NOM_DEP", 
+    simplifier = TRUE, crs = 2154
+)
 
 ### Limites communes ----
-LimitesCommunes <- here("dev/rawdata/ADMIN-EXPRESS_2-4__SHP__FRA_2020-12-15/ADMIN-EXPRESS/1_DONNEES_LIVRAISON_2020-12-15/ADE_2-4_SHP_LAMB93_FR/COMMUNE.shp") %>% 
-    preparer_adminexpress(code_region = 11,
-                          colonne = "ID",
-                          simplifier = TRUE)
-
+LimitesCommunes <- read_from_zip(
+    zipfile = here("dev/rawdata/ADMIN-EXPRESS_2-4__SHP__FRA_WM_2020-12-15.7z"),
+    file = "COMMUNE.shp",
+    fun = preparer_adminexpress,
+    code_region = 11, colonne = "ID", simplifier = TRUE,
+    crs = 2154
+)
 
 ### Grille 10km x 10km INPN ----
 ### https://inpn.mnhn.fr/docs/Shape/L93_10K.zip
-GrilleINPN <- here("dev/rawdata/L93_10K/L93_10X10.shp") %>% 
-    preparer_inpn(limites_region = LimitesRegion)
+GrilleINPN <- read_from_zip(
+    zipfile = here("dev/rawdata/L93_10K.zip"),
+    file = ".shp",
+    fun = preparer_inpn,
+    limites_region = LimitesRegion
+)
 
 # DATA PREPARATION --------------------------------------------------------
 

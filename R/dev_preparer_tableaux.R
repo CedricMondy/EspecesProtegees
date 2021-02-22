@@ -1,5 +1,38 @@
 #' Title
 #'
+#' @param zipfile 
+#' @param file 
+#' @param fun 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+read_from_zip <- function(zipfile, file, fun, ...) {
+    if (!require(archive))
+        remotes::install_github("jimhester/archive")
+    
+    temp <- tempfile()
+    
+    archive::archive_extract(zipfile, dir = temp)
+    
+    filepath <- list.files(
+        path = temp, 
+        pattern = file, 
+        full.names = TRUE, 
+        recursive = TRUE
+    )
+    
+    obj <- fun(filepath, ...)
+    
+    unlink(temp, recursive = TRUE)
+    
+    return(obj)
+}
+
+#' Title
+#'
 #' @param cd_nom 
 #' @param taxref 
 #'

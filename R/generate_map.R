@@ -222,7 +222,7 @@ update_map <- function(mapId, data, limites_communes, grille_inpn) {
 
 #' @importFrom leaflet leafletProxy fitBounds
 #' @importFrom sf st_bbox
-#' @importfrom dplyr filter
+#' @importFrom dplyr filter
 update_map_scale <- function(mapId, departements, limites_departements) {
     if (!is.null(departements)) {
         bbox <- limites_departements %>% 
