@@ -9,7 +9,7 @@
 #' @export
 #'
 #' @examples
-preparer_adminexpress <- function(fichier, code_region, colonne = NULL, simplifier = FALSE) {
+preparer_adminexpress <- function(fichier, code_region, colonne = NULL, simplifier = FALSE, crs = 2154) {
     fichier %>% 
         sf::st_read() %>% 
         dplyr::filter(INSEE_REG %in% code_region) %>% 
@@ -23,7 +23,8 @@ preparer_adminexpress <- function(fichier, code_region, colonne = NULL, simplifi
                     rmapshaper::ms_simplify()
             
             df
-        })
+        }) %>% 
+        sf::st_transform(crs = crs)
 }
 
 

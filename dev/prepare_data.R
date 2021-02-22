@@ -57,23 +57,9 @@ GrilleINPN <- here("dev/rawdata/L93_10K/L93_10X10.shp") %>%
     preparer_inpn(limites_region = LimitesRegion)
 
 # DATA PREPARATION --------------------------------------------------------
-## Corrections ----
-observations <- observations %>% 
-    mutate(
-        CdRef = case_when(
-            # Salamandre tachetée
-            CdNom == 111 ~ 965096,
-            TRUE ~ CdRef
-        )
-    )
 
 taxref <- taxref %>% 
     mutate(
-        CD_SUP = case_when(
-            # rattache Motacilla alba yarrellii à Motacilla alba
-            CD_NOM == 3945 ~ 3941, 
-            TRUE ~ CD_SUP
-        ),
         NOM_VERN = case_when(
             CD_NOM == 77381 ~ "Cistude d'Europe (La)",
             CD_NOM == 444430 ~ "Triton alpestre (Le)",
@@ -103,11 +89,13 @@ idf <-  c(
 
 uicn <- preparer_uicn(
     statuts,
+    taxref = taxref,
     zones_administratives = idf
     )
    
 protections <- preparer_protection(
     statuts, 
+    taxref = taxref,
     zones_administratives = idf
     )
 
@@ -128,8 +116,7 @@ insects <- observations %>%
 ## BIRDS
 birds <- observations %>% 
     preparer_observations(
-        condition = (classe == "Aves" &
-                         annee >= 2017),
+        condition = (classe == "Aves" & annee >= 2017),
         taxref = taxref
         ) %>% 
     ajouter_information_especes(fiches_ofb, protections, uicn) %>% 
